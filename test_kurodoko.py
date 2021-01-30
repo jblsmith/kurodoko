@@ -20,4 +20,8 @@ from solve_kurodoko import *
 
 def test_make_grid():
     grid = Kurodoko((5,7))
-    assert grid.cells.shape == (5,7)
+    assert grid.numbers.shape == (5,7)
+
+def test_grid_initially_blank():
+    grid = Kurodoko((5,5))
+    assert np.all(grid.numbers == 0)
