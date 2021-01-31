@@ -14,6 +14,7 @@ class Kurodoko(object):
         # Sahdes are 0 if blank, 1 for white and -1 for black
         self.visible_in_row = np.zeros(grid_size)
         self.visible_in_column = np.zeros(grid_size)
+        self.valid_coords = [(i,j) for i in range(self.height) for j in range(self.width)]
     
     def set_number(self, row, col, number):
         assert self.numbers[row, col] == 0  # Only can set numbers in blank cells
@@ -102,8 +103,21 @@ class Kurodoko(object):
         ])
         return n_in_dir
     
-    def count_cells_in_direction(self, row, col, direction):
-        assert direction in ['north','east','south','west']
+    def collect_cells_from(self, row, col, thresh=1):
+        """
+        Starting in the cell at (row,col), collect all cells that are
+        contiguous with it.
+        
+        Contiguity requires connectedness by white cells if thresh==1,
+        or by white or blank cells if thresh==0.
+        """
+        assert thresh in [0,1]
+        cell_set = [(row,col)]
+        # Perform depth first search on cells
+    
+    def get_neighbours(self, row, col):
+        neighbours = [(row-1,col), (row+1,col), (row,col-1), (row,col+1)]
+        return list(set.intersection(set(neighbours), set(self.valid_coords)))
         
     
     # def cell_is_valid(self, row, col):

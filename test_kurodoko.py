@@ -88,8 +88,17 @@ def test_count_visible_cells_from():
     assert grid_5_5_incomplete.count_visible_cells_from(3,3,0) == 6
     assert grid_5_5_incomplete.count_visible_cells_from(0,1,0) == 5
 
-def test_cell_is_valid():
-    grid = Kurodoko((3,3))
-    grid.numbers 
-    grid.shades = np.array([[-1,1,1], [1,-1,1], [1,1,1]])
-    # assert /
+def test_valid_coords_generates_correctly():
+    grid = Kurodoko((2,4))
+    valid_coords = sorted([(0,0), (1,0), (0,1), (1,1), (0,2), (1,2), (0,3), (1,3)])
+    assert sorted(grid.valid_coords) == valid_coords
+
+def test_get_neighbours_works():
+    grid = Kurodoko((2,4))
+    assert sorted(grid.get_neighbours(0,0)) == sorted([(0,1), (1,0)])
+    assert sorted(grid.get_neighbours(1,2)) == sorted([(1,1), (1,3), (0,2)])
+
+# def test_cell_is_valid():
+#     grid = Kurodoko((3,3))
+#     grid.numbers
+#     grid.shades = np.array([[-1,1,1], [1,-1,1], [1,1,1]])
