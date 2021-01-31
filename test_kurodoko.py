@@ -2,8 +2,9 @@
 # x grid of m x n cells
 # x all cells initially blank
 # x some cells initially designated with digits and are white
-# - cells can become black
-# - cells can become white
+# x cells can become black
+# x cells can become white
+# x count visible cells in any direction
 # - detect whether space of white cells is contiguous
 # - detect whether black cells cut off any portion of the grid
 # - confirm whether grid is solved and valid
@@ -52,55 +53,40 @@ def test_count_cells_in_each_direction():
         for j in range(4):
             assert sum(grid.count_cells_in_each_direction(i,j).values()) == 11
 
-def test_count_visible_cells():
-    grid = Kurodoko((5,5))
-    grid.shades = np.array([
-        [ 1, 1, 1, 1, 1],
-        [-1, 1, 1,-1, 1],
-        [ 1,-1, 1, 1,-1],
-        [ 1, 1, 1, 0, 0],
-        [ 1, 1,-1, 0, 0]]
-    )
-    assert grid.count_visible_cells_in_direction(3,2,'north',1) == 3
-    assert grid.count_visible_cells_in_direction(3,2,'south',1) == 0
-    assert grid.count_visible_cells_in_direction(3,2,'west',1) == 2
-    assert grid.count_visible_cells_in_direction(3,2,'east',1) == 0
-    assert grid.count_visible_cells_in_direction(3,2,'north',0) == 3
-    assert grid.count_visible_cells_in_direction(3,2,'south',0) == 0
-    assert grid.count_visible_cells_in_direction(3,2,'west',0) == 2
-    assert grid.count_visible_cells_in_direction(3,2,'east',0) == 2
-    assert grid.count_visible_cells_in_direction(4,3,'north',1) == 0
-    assert grid.count_visible_cells_in_direction(4,3,'south',1) == 0
-    assert grid.count_visible_cells_in_direction(4,3,'west',1) == 0
-    assert grid.count_visible_cells_in_direction(4,3,'east',1) == 0
-    assert grid.count_visible_cells_in_direction(4,3,'north',0) == 2
-    assert grid.count_visible_cells_in_direction(4,3,'south',0) == 0
-    assert grid.count_visible_cells_in_direction(4,3,'west',0) == 0
-    assert grid.count_visible_cells_in_direction(4,3,'east',0) == 1
-    assert grid.count_visible_cells_from(2,2,1) == 4
-    assert grid.count_visible_cells_from(3,3,1) == 0
-    assert grid.count_visible_cells_from(3,3,0) == 6
-    assert grid.count_visible_cells_from(0,1,0) == 5
-    # assert grid.count_visible_cells_in_direction(3,0,'north') == 1
-    # assert grid.count_visible_cells_in_direction(3,1,'north') == 0
-    # assert grid.count_visible_cells_in_direction(3,2,'north') == 3
-    # assert grid.count_visible_cells_in_direction(3,3,'north') == 1
-    # assert grid.count_visible_cells_in_direction(3,4,'north') == 0
-    # assert grid.count_visible_cells_in_direction(1,0,'south') == 0
-    # assert grid.count_visible_cells_in_direction(1,1,'south') == 0
-    # assert grid.count_visible_cells_in_direction(1,2,'south') == 2
-    # assert grid.count_visible_cells_in_direction(1,3,'south') == 0
-    # assert grid.count_visible_cells_in_direction(1,4,'south') == 0
-    # assert grid.count_visible_cells_in_direction(0,3,'west') == 3
-    # assert grid.count_visible_cells_in_direction(1,3,'west') == 0
-    # assert grid.count_visible_cells_in_direction(2,3,'west') == 1
-    # assert grid.count_visible_cells_in_direction(3,3,'west') == 3
-    # assert grid.count_visible_cells_in_direction(4,3,'west') == 0
-    # assert grid.count_visible_cells_in_direction(0,1,'east') == 3
-    # assert grid.count_visible_cells_in_direction(1,1,'east') == 1
-    # assert grid.count_visible_cells_in_direction(2,1,'east') == 0
-    # assert grid.count_visible_cells_in_direction(3,1,'east') == 3
-    # assert grid.count_visible_cells_in_direction(4,1,'east') == 0
+grid_5_5_incomplete = Kurodoko((5,5))
+grid_5_5_incomplete.shades = np.array([
+    [ 1, 1, 1, 1, 1],
+    [-1, 1, 1,-1, 1],
+    [ 1,-1, 1, 1,-1],
+    [ 1, 1, 1, 0, 0],
+    [ 1, 1,-1, 0, 0]]
+)
+
+def test_count_cells_from_3_2_correct():
+    assert grid_5_5_incomplete.count_visible_cells_in_direction(3,2,'north',1) == 3
+    assert grid_5_5_incomplete.count_visible_cells_in_direction(3,2,'south',1) == 0
+    assert grid_5_5_incomplete.count_visible_cells_in_direction(3,2,'west',1) == 2
+    assert grid_5_5_incomplete.count_visible_cells_in_direction(3,2,'east',1) == 0
+    assert grid_5_5_incomplete.count_visible_cells_in_direction(3,2,'north',0) == 3
+    assert grid_5_5_incomplete.count_visible_cells_in_direction(3,2,'south',0) == 0
+    assert grid_5_5_incomplete.count_visible_cells_in_direction(3,2,'west',0) == 2
+    assert grid_5_5_incomplete.count_visible_cells_in_direction(3,2,'east',0) == 2
+
+def test_count_cells_from_4_3_correct():
+    assert grid_5_5_incomplete.count_visible_cells_in_direction(4,3,'north',1) == 0
+    assert grid_5_5_incomplete.count_visible_cells_in_direction(4,3,'south',1) == 0
+    assert grid_5_5_incomplete.count_visible_cells_in_direction(4,3,'west',1) == 0
+    assert grid_5_5_incomplete.count_visible_cells_in_direction(4,3,'east',1) == 0
+    assert grid_5_5_incomplete.count_visible_cells_in_direction(4,3,'north',0) == 2
+    assert grid_5_5_incomplete.count_visible_cells_in_direction(4,3,'south',0) == 0
+    assert grid_5_5_incomplete.count_visible_cells_in_direction(4,3,'west',0) == 0
+    assert grid_5_5_incomplete.count_visible_cells_in_direction(4,3,'east',0) == 1
+
+def test_count_visible_cells_from():
+    assert grid_5_5_incomplete.count_visible_cells_from(2,2,1) == 4
+    assert grid_5_5_incomplete.count_visible_cells_from(3,3,1) == 0
+    assert grid_5_5_incomplete.count_visible_cells_from(3,3,0) == 6
+    assert grid_5_5_incomplete.count_visible_cells_from(0,1,0) == 5
 
 def test_cell_is_valid():
     grid = Kurodoko((3,3))
