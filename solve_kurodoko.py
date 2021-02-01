@@ -170,10 +170,16 @@ class Kurodoko(object):
         return all(checks)
 
         
-    # def cell_is_valid(self, row, col):
-    #     if self.numbers[row,col] > 0:
-    #         n_visible = self.cell_horizontal_
-
+    def cell_is_valid(self, row, col):
+        checks = []
+        if self.numbers[row,col] > 0:
+            checks += [self.shades[row,col] >= 0]
+            return all(checks + [self.number_is_valid_at(row,col)])
+        elif self.shades[row,col] == -1:
+            checks += [self.numbers[row,col] == 0]
+            return all(checks + [self.black_cell_is_valid_at(row,col)])
+        else:
+            return True
 
 
 # class Cell:

@@ -176,7 +176,24 @@ def test_black_cells_valid():
     assert not grid.black_cell_is_valid_at(4,4)
     assert grid.black_cell_is_valid_at(3,6)
 
-# def test_cell_is_valid():
-#     grid = Kurodoko((3,3))
-#     grid.numbers
-#     grid.shades = np.array([[-1,1,1], [1,-1,1], [1,1,1]])
+def test_cell_is_valid():
+    """
+    Example grid:
+    
+    5 . . 5
+    . 4 # #
+    # . 2 #
+    
+    There should be a number error at (0,3) and block errors at (1,2), (1,3), and (2,3).
+    """
+    for coord in grid_3_3_complete.valid_coords:
+        assert grid_3_3_complete.cell_is_valid(*coord)
+    grid = Kurodoko((3,4))
+    grid.set_numbers([(0,0,5), (1,1,4), (2,2,2), (0,3,5)])
+    grid.shades = np.ones((3,4),dtype=int)
+    set_as_black = [(1,2), (2,0), (2,3), (1,3)]
+    for coord in set_as_black:
+        grid.shades[coord] = -1
+    cell_contains_an_error = np.array([[0,0,0,1], [0,0,1,1], [0,0,0,1]])
+    for coord in grid.valid_coords:
+        assert grid.cell_is_valid(*coord) == (cell_contains_an_error[coord]==0)
