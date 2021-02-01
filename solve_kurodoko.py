@@ -2,18 +2,21 @@ import numpy as np
 
 class Kurodoko(object):
     
-    def __init__(self, grid_size):
+    def __init__(self, grid_size, set_numbers=None, set_shades=None):
         
         assert len(grid_size)==2
         self.grid_size = grid_size
         self.height = grid_size[0]
         self.width = grid_size[1]
         self.numbers = np.zeros(grid_size)
-        # Numbers are 0 if unset, else >= 1
         self.shades = np.zeros(grid_size)
+        if set_numbers is not None:
+            self.set_numbers(set_numbers)
+        # Numbers are 0 if unset, else >= 1
+        if set_shades is not None:
+            for coord in set_shades:
+                self.shades[coord] = -1
         # Shades are 0 if blank, 1 for white and -1 for black
-        self.visible_in_row = np.zeros(grid_size)
-        self.visible_in_column = np.zeros(grid_size)
         self.valid_coords = [(i,j) for i in range(self.height) for j in range(self.width)]
     
     def set_number(self, row, col, number):
@@ -180,7 +183,12 @@ class Kurodoko(object):
             return all(checks + [self.black_cell_is_valid_at(row,col)])
         else:
             return True
-
+    
+    def grid_contains_no_errors(self):
+        checks = [self.cell_is_valid(*coord) for coord in self.valid_coords]
+        checks += [not self._any_regions_cut_off()]
+        # breakpoint()
+        return all(checks)            
 
 # class Cell:
 #     self.coordinates

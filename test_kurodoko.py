@@ -197,3 +197,28 @@ def test_cell_is_valid():
     cell_contains_an_error = np.array([[0,0,0,1], [0,0,1,1], [0,0,0,1]])
     for coord in grid.valid_coords:
         assert grid.cell_is_valid(*coord) == (cell_contains_an_error[coord]==0)
+
+def test_grid_contains_no_errors():
+    # Complete example has no errors
+    assert grid_3_3_complete.grid_contains_no_errors()
+
+    # Example without errors
+    grid = Kurodoko((5,5), set_numbers = [(0,0,9), (2,2,5)], set_shades = [(2,3), (3,2)])
+    grid.shades[grid.shades!=-1] = 1
+    assert grid.grid_contains_no_errors()
+
+    # Add a black cell adjacent to another black cell
+    grid.shades[2,4] = -1
+    assert not grid.grid_contains_no_errors()
+
+    # Make a grid with an error of number
+    grid = Kurodoko((5,5), [(0,0,8)])
+    grid.shades[grid.shades!=-1] = 1
+    assert not grid.grid_contains_no_errors()
+
+    # Fail because of disconnected parts of grid
+    grid = Kurodoko((5,5))
+    grid.shades = np.eye(5, dtype=int)
+    grid.shades[grid.shades==1] = -1
+    grid.shades[grid.shades==0] = 1
+    assert not grid.grid_contains_no_errors()
