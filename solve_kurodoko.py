@@ -11,7 +11,7 @@ class Kurodoko(object):
         self.numbers = np.zeros(grid_size)
         # Numbers are 0 if unset, else >= 1
         self.shades = np.zeros(grid_size)
-        # Sahdes are 0 if blank, 1 for white and -1 for black
+        # Shades are 0 if blank, 1 for white and -1 for black
         self.visible_in_row = np.zeros(grid_size)
         self.visible_in_column = np.zeros(grid_size)
         self.valid_coords = [(i,j) for i in range(self.height) for j in range(self.width)]
@@ -153,7 +153,22 @@ class Kurodoko(object):
             connected_cells = self.collect_contiguous_cells_from(one_cell[0], one_cell[1], thresh)
             return set(connected_cells) != set(white_cells)
     
-        
+    def number_is_valid_at(self, row, col):
+        number = self.numbers[row,col]
+        checks = [number > 0]
+        if number > 0:
+            seen = self.count_visible_cells_from(row, col, thresh=1)
+            checks += [seen == number-1]
+        return all(checks)
+    
+    
+    def black_cell_is_valid_at(self, row, col):
+        shade = self.shades[row,col]
+        neighbours = self.get_neighbours(row, col)
+        checks = [self.shades[neighbour]==1 for neighbour in neighbours]
+        checks += [shade==-1]
+        return all(checks)
+
         
     # def cell_is_valid(self, row, col):
     #     if self.numbers[row,col] > 0:

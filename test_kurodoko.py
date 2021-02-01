@@ -9,7 +9,10 @@
 # x detect whether black cells cut off any portion of the grid
 #     x return set of white or blank cells
 #     x determine whether all white cells in group contiguous with one of them
-# - confirm whether grid is solved and valid
+# - confirm whether grid is solved and valid. Requires checking contiguity, and:
+#     x check number matches white squares seen
+#     x check black square's neighbours all white
+#     - iterate through cells and make these checks
 # - logical deductions:
 #     - if number is larger than amount of space in row, then some must spill into column
 #     - if adding a white space introduces a contradiction, it must be black
@@ -146,7 +149,32 @@ def test_grid_for_contiguity():
     assert grid_5_5_incomplete._any_regions_cut_off(1)
     assert not grid_5_5_incomplete._any_regions_cut_off(0)
 
+def test_number_is_valid_at():
+    grid = Kurodoko((3,4))
+    grid.set_numbers([(0,0,5), (1,1,4), (2,2,2)])
+    grid.shades = np.ones((3,4),dtype=int)
+    grid.shades[1,2] = -1
+    grid.shades[2,0] = -1
+    grid.shades[2,3] = -1
+    for i in range(3):
+        assert grid.number_is_valid_at(i, i)
+    grid.numbers[0,0] = 6
+    grid.numbers[1,1] = 3
+    grid.numbers[2,2] = 0
+    for i in range(3):
+        assert not grid.number_is_valid_at(i, i)
 
+def test_black_cells_valid():
+    assert grid_5_5_incomplete.black_cell_is_valid_at(2,1)
+    assert not grid_5_5_incomplete.black_cell_is_valid_at(2,2)
+    grid = Kurodoko((5,10))
+    grid.shades = np.ones_like(grid.shades, dtype=int)
+    grid.shades[3,4] = -1
+    grid.shades[4,4] = -1
+    grid.shades[3,6] = -1
+    assert not grid.black_cell_is_valid_at(3,4)
+    assert not grid.black_cell_is_valid_at(4,4)
+    assert grid.black_cell_is_valid_at(3,6)
 
 # def test_cell_is_valid():
 #     grid = Kurodoko((3,3))
