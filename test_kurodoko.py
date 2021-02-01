@@ -93,10 +93,32 @@ def test_valid_coords_generates_correctly():
     valid_coords = sorted([(0,0), (1,0), (0,1), (1,1), (0,2), (1,2), (0,3), (1,3)])
     assert sorted(grid.valid_coords) == valid_coords
 
-def test_get_neighbours_works():
+def test_get_neighbours():
     grid = Kurodoko((2,4))
     assert sorted(grid.get_neighbours(0,0)) == sorted([(0,1), (1,0)])
     assert sorted(grid.get_neighbours(1,2)) == sorted([(1,1), (1,3), (0,2)])
+
+def test_get_open_neighbours():
+    assert grid_5_5_incomplete.get_open_neighbours(0,0,0) == [(0,1)]
+    assert set(grid_5_5_incomplete.get_open_neighbours(2,2,0)) == set([(2,3), (1,2), (3,2)])
+    assert set(grid_5_5_incomplete.get_open_neighbours(2,3,0)) == set([(2,2), (3,3)])
+    assert grid_5_5_incomplete.get_open_neighbours(2,3,1) == [(2,2)]
+
+def test_collect_contiguous_cells_from():
+    grid = Kurodoko((3,3))
+    grid.shades = np.ones_like(grid.shades)
+    grid.shades[(0,0)] = -1
+    grid.shades[(1,1)] = -1
+    grid.shades[(2,2)] = -1
+    top_right_cells = grid.collect_contiguous_cells_from(0,1,1)
+    assert top_right_cells == set([(0,1), (0,2), (1,2)])
+    bottom_left_cells = grid.collect_contiguous_cells_from(1,0,1)
+    assert bottom_left_cells == set([(1,0), (2,0), (2,1)])
+    incomplete_grid_cells_strict = grid_5_5_incomplete.collect_contiguous_cells_from(0,0,1)
+    incomplete_grid_cells_lax = grid_5_5_incomplete.collect_contiguous_cells_from(0,0,0)
+    assert len(incomplete_grid_cells_strict) == 16
+    assert len(incomplete_grid_cells_lax) == 20
+    
 
 # def test_cell_is_valid():
 #     grid = Kurodoko((3,3))

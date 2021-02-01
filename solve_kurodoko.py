@@ -103,7 +103,7 @@ class Kurodoko(object):
         ])
         return n_in_dir
     
-    def collect_cells_from(self, row, col, thresh=1):
+    def collect_contiguous_cells_from(self, row, col, thresh=1):
         """
         Starting in the cell at (row,col), collect all cells that are
         contiguous with it.
@@ -112,13 +112,32 @@ class Kurodoko(object):
         or by white or blank cells if thresh==0.
         """
         assert thresh in [0,1]
-        cell_set = [(row,col)]
+        cells_visited = set([(row,col)])
+        cells_exhausted = set()
+        while set(cells_exhausted) != set(cells_visited):
+            # Pick a cell from the visited set that is not exhausted
+            next_options = list(cells_visited.difference(cells_exhausted))
+            assert len(next_options) > 0
+            current_cell = next_options[0]
+            current_row, current_col = current_cell
+            # Get all neighbours
+            current_neighbours = self.get_open_neighbours(current_row, current_col, thresh)
+            # Add these to the visited set, and add current_cell to exhausted set.
+            cells_visited = cells_visited.union(current_neighbours)
+            cells_exhausted.add(current_cell)
+        return cells_visited
+        # cell_set =
+        # for coord in cell_
         # Perform depth first search on cells
     
     def get_neighbours(self, row, col):
         neighbours = [(row-1,col), (row+1,col), (row,col-1), (row,col+1)]
         return list(set.intersection(set(neighbours), set(self.valid_coords)))
-        
+    
+    def get_open_neighbours(self, row, col, thresh=1):
+        viable_neighbours = self.get_neighbours(row, col)
+        open_neighbours = [coord for coord in viable_neighbours if self.shades[coord] >= thresh]
+        return open_neighbours
     
     # def cell_is_valid(self, row, col):
     #     if self.numbers[row,col] > 0:
