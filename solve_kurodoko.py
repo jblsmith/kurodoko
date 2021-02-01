@@ -139,6 +139,22 @@ class Kurodoko(object):
         open_neighbours = [coord for coord in viable_neighbours if self.shades[coord] >= thresh]
         return open_neighbours
     
+    def get_all_white_cells(self, thresh=1):
+        all_white_cells = set([coord for coord in self.valid_coords if self.shades[coord]>=thresh])
+        return all_white_cells
+    
+    def _any_regions_cut_off(self, thresh=0):
+        white_cells = self.get_all_white_cells(thresh=thresh)
+        if len(white_cells) == 0:
+            # There cannot be any cut-off regions if there are no white regions.
+            return False
+        else:
+            one_cell = list(white_cells)[0]
+            connected_cells = self.collect_contiguous_cells_from(one_cell[0], one_cell[1], thresh)
+            return set(connected_cells) != set(white_cells)
+    
+        
+        
     # def cell_is_valid(self, row, col):
     #     if self.numbers[row,col] > 0:
     #         n_visible = self.cell_horizontal_

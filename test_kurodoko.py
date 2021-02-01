@@ -5,8 +5,10 @@
 # x cells can become black
 # x cells can become white
 # x count visible cells in any direction
-# - detect whether space of white cells is contiguous
-# - detect whether black cells cut off any portion of the grid
+# x detect whether space of white cells is contiguous
+# x detect whether black cells cut off any portion of the grid
+#     x return set of white or blank cells
+#     x determine whether all white cells in group contiguous with one of them
 # - confirm whether grid is solved and valid
 # - logical deductions:
 #     - if number is larger than amount of space in row, then some must spill into column
@@ -18,6 +20,22 @@
 
 
 from solve_kurodoko import *
+
+grid_5_5_incomplete = Kurodoko((5,5))
+grid_5_5_incomplete.shades = np.array([
+    [ 1, 1, 1, 1, 1],
+    [-1, 1, 1,-1, 1],
+    [ 1,-1, 1, 1,-1],
+    [ 1, 1, 1, 0, 0],
+    [ 1, 1,-1, 0, 1]]
+)
+
+grid_3_3_incomplete = Kurodoko((3,3))
+grid_3_3_incomplete.set_numbers([(0,0,5), (1,2,2)])
+
+grid_3_3_complete = Kurodoko((3,3))
+grid_3_3_complete.numbers = np.array([[5,3,4], [3,0,2], [4,2,0]])
+grid_3_3_complete.shades = np.array([[1,1,1], [1,-1,1], [1,1,-1]])
 
 def test_make_grid():
     grid = Kurodoko((5,7))
@@ -52,15 +70,6 @@ def test_count_cells_in_each_direction():
     for i in range(9):
         for j in range(4):
             assert sum(grid.count_cells_in_each_direction(i,j).values()) == 11
-
-grid_5_5_incomplete = Kurodoko((5,5))
-grid_5_5_incomplete.shades = np.array([
-    [ 1, 1, 1, 1, 1],
-    [-1, 1, 1,-1, 1],
-    [ 1,-1, 1, 1,-1],
-    [ 1, 1, 1, 0, 0],
-    [ 1, 1,-1, 0, 0]]
-)
 
 def test_count_cells_from_3_2_correct():
     assert grid_5_5_incomplete.count_visible_cells_in_direction(3,2,'north',1) == 3
@@ -118,7 +127,26 @@ def test_collect_contiguous_cells_from():
     incomplete_grid_cells_lax = grid_5_5_incomplete.collect_contiguous_cells_from(0,0,0)
     assert len(incomplete_grid_cells_strict) == 16
     assert len(incomplete_grid_cells_lax) == 20
-    
+
+def test_get_all_white_cells():
+    white_cells = grid_3_3_complete.get_all_white_cells()
+    expected_cells = [(0,0), (0,1), (0,2), (1,0), (1,2), (2,0), (2,1)]
+    assert sorted(white_cells) == sorted(expected_cells)
+    white_cells = grid_3_3_incomplete.get_all_white_cells(thresh=1)
+    assert sorted(white_cells) == sorted([(0,0), (1,2)])
+    white_cells = grid_3_3_incomplete.get_all_white_cells(thresh=0)
+    assert sorted(white_cells) == sorted(grid_3_3_incomplete.valid_coords)
+
+def test_grid_for_contiguity():
+    assert not grid_3_3_complete._any_regions_cut_off()
+    grid = Kurodoko((3,3))
+    grid.shades[0,1] = -1
+    grid.shades[1,0] = -1
+    assert grid._any_regions_cut_off()
+    assert grid_5_5_incomplete._any_regions_cut_off(1)
+    assert not grid_5_5_incomplete._any_regions_cut_off(0)
+
+
 
 # def test_cell_is_valid():
 #     grid = Kurodoko((3,3))
