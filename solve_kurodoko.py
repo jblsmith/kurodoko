@@ -126,6 +126,27 @@ class Kurodoko(object):
             coords += self.coords_of_visible_cells_in_direction(row, col, direction, thresh)
         return coords
     
+    def nearest_blank_cell_in_direction(self, row, col, direction):
+        n_white_cells_visible = self.count_visible_cells_in_direction(row, col, direction, 1)
+        n_blank_cells_visible = self.count_visible_cells_in_direction(row, col, direction, 0)
+        assert n_blank_cells_visible >= n_white_cells_visible
+        n_extra = n_blank_cells_visible - n_white_cells_visible
+        if n_extra == 0:
+            return ()
+        else:
+            if direction == 'north':
+                return (row - n_white_cells_visible - 1, col)
+            elif direction == 'south':
+                return (row + n_white_cells_visible + 1, col)
+            elif direction == 'east':
+                return (row, col + n_white_cells_visible + 1)
+            elif direction == 'west':
+                return (row, col - n_white_cells_visible - 1)
+    
+    def nearest_blank_cells_from(self, row, col):
+        coords = [self.nearest_blank_cell_in_direction(row, col, direction) for direction in ['north', 'south', 'east', 'west']]
+        return [coord for coord in coords if coord]
+    
     def collect_contiguous_cells_from(self, row, col, thresh):
         """
         Starting in the cell at (row,col), collect all cells that are
@@ -219,28 +240,14 @@ class Kurodoko(object):
         assert self.numbers[row,col] > 0
         return self.count_visible_cells_from(row,col,thresh)+1 == self.numbers[row,col]
     
-    def make_max_cell_deduction(self, row, col):
+    def deduce_cell_maxes_visible_space(self, row, col):
         if self.cell_sees_max_possible(row, col, 0):
             ensure_white_coords = self.coords_of_visible_cells_from(row, col, 0)
             for coord in ensure_white_coords:
                 self.shades[coord] = 1
-
-# class Cell:
-#     self.coordinates
-#     self.shade
-#     self.number
-#     self.neighbours(coordinates)
-#
-#     def grid.cell.get_neighbours()
-#         return coords of neighbouring cells
-#
-#     def cell.check
-#
-#     def cell.possible_views()
-#
-#     def grid.cell.get_visible_cells()
-#
-#     def
-#
-#
-#
+    
+    def deduce_number_already_satisfied(self, row, col):
+        if self.count_visible_cells_from(row, col, 1) == self.numbers[row, col]:
+            # Visible WHITE cells satisfy number.
+            # So, now get nearest visible BLANK cells and make them BLACK.
+            return False

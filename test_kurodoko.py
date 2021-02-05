@@ -14,6 +14,8 @@
 #     x check black square's neighbours all white
 #     x iterate through cells and make these checks
 # - logical deductions:
+#     x if number equals visible blank space, then all blank cells white
+#     - if number equals visible white space, then next blank cells black
 #     - if number is larger than amount of space in row, then some must spill into column
 #     - if adding a white space introduces a contradiction, it must be black
 #     - if adding a black space introduces a contradiction, it must be white
@@ -237,9 +239,25 @@ def test_get_coords_of_cells_in_direction():
         (0,2), (2,2), (3,2), (1,1)
     ])
 
-def test_make_max_deducation():
+def test_deduce_cell_maxes_visible_space():
     grid = Kurodoko((3,3))
     grid.set_numbers([(0,0,5), (1,2,2)])
     assert grid.shades[1,0] == grid.shades[0,2] == 0
-    grid.make_max_cell_deduction(0,0)
+    grid.deduce_cell_maxes_visible_space(0,0)
     assert grid.shades[1,0] == grid.shades[0,2] == 1
+
+def test_find_nearest_blank_cell_in_direction():
+    assert grid_5_5_incomplete.nearest_blank_cell_in_direction(3,0,'east') == (3,3)
+    assert grid_5_5_incomplete.nearest_blank_cell_in_direction(4,4,'north') == (3,4)
+    assert grid_5_5_incomplete.nearest_blank_cell_in_direction(1,1,'east') == ()
+    assert grid_5_5_incomplete.nearest_blank_cells_from(4,4) == [(3,4), (4,3)]
+    assert grid_5_5_incomplete.nearest_blank_cells_from(3,1) == [(3,3)]
+    assert grid_5_5_incomplete.nearest_blank_cells_from(0,1) == []
+
+def test_deduce_number_already_satisfied():
+    grid = Kurodoko((3,3), set_numbers=[(0,0,5), (1,2,2)])
+    grid.deduce_cell_maxes_visible_space(0,0)
+    # Cell (1,2) now has one black neighbour (1,1), one white neighbour (2,0),
+    # and one blank neighbour (2,2). Since its number is 2 and it can see
+    # a cell already, it should deduce that it must place a black cell in (2,2).
+    grid.deduce_number_already_satisfied(1,2)
