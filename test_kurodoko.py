@@ -9,10 +9,10 @@
 # x detect whether black cells cut off any portion of the grid
 #     x return set of white or blank cells
 #     x determine whether all white cells in group contiguous with one of them
-# - confirm whether grid is solved and valid. Requires checking contiguity, and:
+# x confirm whether grid is solved and valid. Requires checking contiguity, and:
 #     x check number matches white squares seen
 #     x check black square's neighbours all white
-#     - iterate through cells and make these checks
+#     x iterate through cells and make these checks
 # - logical deductions:
 #     - if number is larger than amount of space in row, then some must spill into column
 #     - if adding a white space introduces a contradiction, it must be black
@@ -132,7 +132,7 @@ def test_collect_contiguous_cells_from():
     assert len(incomplete_grid_cells_lax) == 20
 
 def test_get_all_white_cells():
-    white_cells = grid_3_3_complete.get_all_white_cells()
+    white_cells = grid_3_3_complete.get_all_white_cells(thresh=1)
     expected_cells = [(0,0), (0,1), (0,2), (1,0), (1,2), (2,0), (2,1)]
     assert sorted(white_cells) == sorted(expected_cells)
     white_cells = grid_3_3_incomplete.get_all_white_cells(thresh=1)
@@ -141,11 +141,11 @@ def test_get_all_white_cells():
     assert sorted(white_cells) == sorted(grid_3_3_incomplete.valid_coords)
 
 def test_grid_for_contiguity():
-    assert not grid_3_3_complete._any_regions_cut_off()
+    assert not grid_3_3_complete._any_regions_cut_off(1)
     grid = Kurodoko((3,3))
     grid.shades[0,1] = -1
     grid.shades[1,0] = -1
-    assert grid._any_regions_cut_off()
+    assert grid._any_regions_cut_off(0)
     assert grid_5_5_incomplete._any_regions_cut_off(1)
     assert not grid_5_5_incomplete._any_regions_cut_off(0)
 
@@ -222,3 +222,24 @@ def test_grid_contains_no_errors():
     grid.shades[grid.shades==1] = -1
     grid.shades[grid.shades==0] = 1
     assert not grid.grid_contains_no_errors()
+
+def test_deduce_max_spacer():
+    # breakpoint()
+    assert grid_3_3_incomplete.cell_sees_max_possible(0,0,0)
+    assert not grid_3_3_incomplete.cell_sees_max_possible(1,2,0)
+
+def test_get_coords_of_cells_in_direction():
+    assert grid_5_5_incomplete.coords_of_visible_cells_in_direction(1,2,'north',0) == [(0,2)]
+    assert grid_5_5_incomplete.coords_of_visible_cells_in_direction(1,2,'south',0) == [(2,2), (3,2)]
+    assert grid_5_5_incomplete.coords_of_visible_cells_in_direction(1,2,'east',0) == []
+    assert grid_5_5_incomplete.coords_of_visible_cells_in_direction(1,2,'west',0) == [(1,1)]
+    assert set(grid_5_5_incomplete.coords_of_visible_cells_from(1,2,0)) == set([
+        (0,2), (2,2), (3,2), (1,1)
+    ])
+
+def test_make_max_deducation():
+    grid = Kurodoko((3,3))
+    grid.set_numbers([(0,0,5), (1,2,2)])
+    assert grid.shades[1,0] == grid.shades[0,2] == 0
+    grid.make_max_cell_deduction(0,0)
+    assert grid.shades[1,0] == grid.shades[0,2] == 1

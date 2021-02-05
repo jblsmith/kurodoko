@@ -8,8 +8,8 @@ class Kurodoko(object):
         self.grid_size = grid_size
         self.height = grid_size[0]
         self.width = grid_size[1]
-        self.numbers = np.zeros(grid_size)
-        self.shades = np.zeros(grid_size)
+        self.numbers = np.zeros(grid_size, dtype=int)
+        self.shades = np.zeros(grid_size, dtype=int)
         if set_numbers is not None:
             self.set_numbers(set_numbers)
         # Numbers are 0 if unset, else >= 1
@@ -51,7 +51,7 @@ class Kurodoko(object):
             'east':n_east
         }
     
-    def count_visible_cells_in_direction(self, row, col, direction, thresh=1):
+    def count_visible_cells_in_direction(self, row, col, direction, thresh):
         """
         Counts cells visible from (row,col) in direction.
         
@@ -98,7 +98,7 @@ class Kurodoko(object):
                     return n_visible
         return n_visible
     
-    def count_visible_cells_from(self, row, col, thresh=1):
+    def count_visible_cells_from(self, row, col, thresh):
         assert thresh in [0,1]
         n_in_dir = sum([self.count_visible_cells_in_direction(
             row, col, direction, thresh=thresh
@@ -106,7 +106,27 @@ class Kurodoko(object):
         ])
         return n_in_dir
     
-    def collect_contiguous_cells_from(self, row, col, thresh=1):
+    def coords_of_visible_cells_in_direction(self, row, col, direction, thresh):
+        # breakpoint()
+        assert direction in ['north','south','east','west']
+        n_cells_in_dir = self.count_visible_cells_in_direction(row, col, direction, thresh)
+        if direction == 'north':
+            coords = [(row-i-1,col) for i in range(n_cells_in_dir)]
+        elif direction == 'south':
+            coords = [(row+i+1,col) for i in range(n_cells_in_dir)]
+        elif direction == 'east':
+            coords = [(row,col+i+1) for i in range(n_cells_in_dir)]
+        elif direction == 'west':
+            coords = [(row,col-i-1) for i in range(n_cells_in_dir)]
+        return coords
+    
+    def coords_of_visible_cells_from(self, row, col, thresh):
+        coords = []
+        for direction in ['north','south','east','west']:
+            coords += self.coords_of_visible_cells_in_direction(row, col, direction, thresh)
+        return coords
+    
+    def collect_contiguous_cells_from(self, row, col, thresh):
         """
         Starting in the cell at (row,col), collect all cells that are
         contiguous with it.
@@ -137,16 +157,16 @@ class Kurodoko(object):
         neighbours = [(row-1,col), (row+1,col), (row,col-1), (row,col+1)]
         return list(set.intersection(set(neighbours), set(self.valid_coords)))
     
-    def get_open_neighbours(self, row, col, thresh=1):
+    def get_open_neighbours(self, row, col, thresh):
         viable_neighbours = self.get_neighbours(row, col)
         open_neighbours = [coord for coord in viable_neighbours if self.shades[coord] >= thresh]
         return open_neighbours
     
-    def get_all_white_cells(self, thresh=1):
+    def get_all_white_cells(self, thresh):
         all_white_cells = set([coord for coord in self.valid_coords if self.shades[coord]>=thresh])
         return all_white_cells
     
-    def _any_regions_cut_off(self, thresh=0):
+    def _any_regions_cut_off(self, thresh):
         white_cells = self.get_all_white_cells(thresh=thresh)
         if len(white_cells) == 0:
             # There cannot be any cut-off regions if there are no white regions.
@@ -186,9 +206,24 @@ class Kurodoko(object):
     
     def grid_contains_no_errors(self):
         checks = [self.cell_is_valid(*coord) for coord in self.valid_coords]
-        checks += [not self._any_regions_cut_off()]
+        checks += [not self._any_regions_cut_off(thresh=0)]
         # breakpoint()
-        return all(checks)            
+        return all(checks)
+    
+    def cell_sees_max_possible(self, row, col, thresh):
+        """
+        Returns TRUE if the cell at (row, col) can currently see a number
+        of cells equal to its number.
+        """
+        # breakpoint()
+        assert self.numbers[row,col] > 0
+        return self.count_visible_cells_from(row,col,thresh)+1 == self.numbers[row,col]
+    
+    def make_max_cell_deduction(self, row, col):
+        if self.cell_sees_max_possible(row, col, 0):
+            ensure_white_coords = self.coords_of_visible_cells_from(row, col, 0)
+            for coord in ensure_white_coords:
+                self.shades[coord] = 1
 
 # class Cell:
 #     self.coordinates
