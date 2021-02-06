@@ -9,15 +9,27 @@ class Kurodoko(object):
         self.height = grid_size[0]
         self.width = grid_size[1]
         self.numbers = np.zeros(grid_size, dtype=int)
+        # Shades are 0 if blank, 1 for white and -1 for black
         self.shades = np.zeros(grid_size, dtype=int)
+        self.valid_coords = [(i,j) for i in range(self.height) for j in range(self.width)]
         if set_numbers is not None:
             self.set_numbers(set_numbers)
         # Numbers are 0 if unset, else >= 1
         if set_shades is not None:
             for coord in set_shades:
-                self.shades[coord] = -1
-        # Shades are 0 if blank, 1 for white and -1 for black
-        self.valid_coords = [(i,j) for i in range(self.height) for j in range(self.width)]
+                self.set_shade_black(*coord)
+    
+    def numbered_cells(self):
+        return [coord for coord in self.valid_coords if self.numbers[coord]>0]
+    
+    def blank_cells(self):
+        return [coord for coord in self.valid_coords if self.shades[coord]==0]
+
+    def white_cells(self):
+        return [coord for coord in self.valid_coords if self.shades[coord]==1]
+
+    def black_cells(self):
+        return [coord for coord in self.valid_coords if self.shades[coord]==-1]
     
     def set_number(self, row, col, number):
         assert self.numbers[row, col] == 0  # Only can set numbers in blank cells
@@ -29,6 +41,22 @@ class Kurodoko(object):
     def set_numbers(self, assignment_list):
         for row,col,number in assignment_list:
             self.set_number(row, col, number)
+    
+    def set_shade_black(self, row, col):
+        """
+        Safe way to set a cell black:
+         - asserts cell isn't white already
+         - asserts all neighbours are blank or white
+         - makes the cell black
+         - makes all neighbours white
+        """
+        neighbours = self.get_neighbours(row, col)
+        assert self.shades[row, col] <= 0
+        for coord in neighbours:
+            assert self.shades[coord] >= 0
+        self.shades[row, col] = -1
+        for coord in neighbours:
+            self.shades[coord] = 1
     
     def grid_filled_out(self):
         """
@@ -247,7 +275,19 @@ class Kurodoko(object):
                 self.shades[coord] = 1
     
     def deduce_number_already_satisfied(self, row, col):
-        if self.count_visible_cells_from(row, col, 1) == self.numbers[row, col]:
+        if self.count_visible_cells_from(row, col, 1) + 1 == self.numbers[row, col]:
             # Visible WHITE cells satisfy number.
             # So, now get nearest visible BLANK cells and make them BLACK.
-            return False
+            coords = self.nearest_blank_cells_from(row, col)
+            for coord in coords:
+                self.set_shade_black(*coord)
+    
+    def cell_cannot_be_black(self, row, col):
+        fake_grid = Kurodoko(self.grid_size, set_shades=self.black_cells())
+        fake_grid.set_shade_black(row, col)
+        # If any regions are now cut off, then cell cannot be black; return True.
+        return fake_grid._any_regions_cut_off(0)
+    
+    def deduce_dont_split_grid(self, row, col):
+        if self.shades[row,col] == 0 and self.cell_cannot_be_black(row, col):
+            self.shades[row, col] = 1
