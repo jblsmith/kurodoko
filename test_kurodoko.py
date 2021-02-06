@@ -282,6 +282,7 @@ def test_deduce_dont_split_grid():
     assert grid.shades[1,2]==1
 
 def test_solve_a_solvable_grid():
+    # breakpoint()
     grid = Kurodoko((5,5), set_numbers=[(0,0,4), (0,4,6), (2,1,9), (2,3,5), (4,0,2)])
     for i in range(5):
         for coord in grid.valid_coords:
@@ -290,3 +291,28 @@ def test_solve_a_solvable_grid():
                 grid.deduce_cell_maxes_visible_space(*coord)
                 grid.deduce_number_already_satisfied(*coord)
     assert grid.grid_filled_out()
+
+def test_get_exhausted_numbered_cells():
+    grid = Kurodoko((3,3), set_numbers=[(0,0,5), (2,2,3)])
+    assert grid.limited_numbered_cells() == []
+    grid.deduce_cell_maxes_visible_space(0,0)
+    assert grid.limited_numbered_cells() == [(0,0)]
+
+def test_get_unsolved_cells():
+    grid = Kurodoko((4,4), set_numbers=[(1,1,7), (0,3,2)])
+    """
+    Initial:     After         After         After
+                 maxes_space:  sees_max:     dont_split:
+    ? ? ? 2      ? . ? 2       ? . X 2       ? . X 2
+    ? 7 ? ?      . 7 . .       . 7 . .       . 7 . .
+    ? ? ? ?      ? . ? ?       ? . . X       ? . . X
+    ? ? ? ?      ? . ? ?       ? . ? .       ? . . .
+    """
+    # breakpoint()
+    assert set(grid.unsolved_cells()) == set(grid.valid_coords)
+    grid.deduce_cell_maxes_visible_space(1,1)
+    assert set(grid.unsolved_cells()) == set([(0,0), (0,2), (0,3), (2,0), (2,2), (2,3), (3,0), (3,2), (3,3)])
+    grid.deduce_number_already_satisfied(0,3)
+    assert set(grid.unsolved_cells()) == set([(0,0), (2,0), (3,0), (3,2)])
+    grid.deduce_dont_split_grid(3,2)
+    assert set(grid.unsolved_cells()) == set([(0,0), (2,0), (3,0)])

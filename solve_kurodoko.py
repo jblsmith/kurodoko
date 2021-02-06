@@ -22,6 +22,16 @@ class Kurodoko(object):
     def numbered_cells(self):
         return [coord for coord in self.valid_coords if self.numbers[coord]>0]
     
+    def limited_numbered_cells(self):
+        """
+        We want this to return fully solved cells only. A cell numbered N is solved if:
+        - it sees N white cells [i.e., sees the number it is supposed to]
+        - it sees N blank cells [i.e., it could not possibly see more white cells]
+        """
+        return [coord for coord in self.numbered_cells() if 
+            self.count_visible_cells_from(*coord, 0) == self.count_visible_cells_from(*coord, 1)
+        ]
+    
     def blank_cells(self):
         return [coord for coord in self.valid_coords if self.shades[coord]==0]
 
@@ -30,6 +40,12 @@ class Kurodoko(object):
 
     def black_cells(self):
         return [coord for coord in self.valid_coords if self.shades[coord]==-1]
+    
+    def unsolved_cells(self):
+        numbered_cells = self.numbered_cells()
+        blank_cells = self.blank_cells()
+        limited_cells = self.limited_numbered_cells()
+        return list(set(blank_cells + numbered_cells).difference(limited_cells))
     
     def set_number(self, row, col, number):
         assert self.numbers[row, col] == 0  # Only can set numbers in blank cells
@@ -264,7 +280,6 @@ class Kurodoko(object):
         Returns TRUE if the cell at (row, col) can currently see a number
         of cells equal to its number.
         """
-        # breakpoint()
         assert self.numbers[row,col] > 0
         return self.count_visible_cells_from(row,col,thresh)+1 == self.numbers[row,col]
     
