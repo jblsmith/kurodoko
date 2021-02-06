@@ -17,7 +17,7 @@
 #     x if number equals visible blank space, then all blank cells white
 #     x if number equals visible white space, then next blank cells black
 #     x when setting a cell as black, all neighbours must be white
-#     - if making a cell black would lead to discontiguous white areas, it must be white
+#     x if making a cell black would lead to discontiguous white areas, it must be white
 #     - if number is larger than amount of space in row, then some must spill into column
 #     - if adding a white space introduces a contradiction, it must be black
 #     - if adding a black space introduces a contradiction, it must be white
@@ -280,3 +280,13 @@ def test_deduce_dont_split_grid():
     assert grid.cell_cannot_be_black(1,2)
     grid.deduce_dont_split_grid(1,2)
     assert grid.shades[1,2]==1
+
+def test_solve_a_solvable_grid():
+    grid = Kurodoko((5,5), set_numbers=[(0,0,4), (0,4,6), (2,1,9), (2,3,5), (4,0,2)])
+    for i in range(5):
+        for coord in grid.valid_coords:
+            grid.deduce_dont_split_grid(*coord)
+            if grid.numbers[coord] > 0:
+                grid.deduce_cell_maxes_visible_space(*coord)
+                grid.deduce_number_already_satisfied(*coord)
+    assert grid.grid_filled_out()
