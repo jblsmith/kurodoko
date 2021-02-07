@@ -74,14 +74,51 @@ class Kurodoko(object):
         for coord in neighbours:
             self.shades[coord] = 1
     
-    def _grid_filled_out(self):
+    def _is_filled_out(self):
         """
         Returns whether the grid is completed or not
         """
         return np.all(self.shades!=0)
 
     def _is_solved_and_valid(self):
-        return self._grid_filled_out() and not self._any_regions_cut_off(1)
+        return self._is_filled_out() and not self._any_regions_cut_off(1)
+    
+    def _any_regions_cut_off(self, thresh):
+        white_cells = self.get_all_white_cells(thresh=thresh)
+        if len(white_cells) == 0:
+            # There cannot be any cut-off regions if there are no white regions.
+            return False
+        else:
+            one_cell = list(white_cells)[0]
+            connected_cells = self.collect_contiguous_cells_from(one_cell[0], one_cell[1], thresh)
+            return set(connected_cells) != set(white_cells)
+    
+    def _any_black_cells_adjoin_each_other(self):
+        """
+        This should return False if the set B of all black cells
+        and the set of all neighbours of members of B are disjoint.
+        """
+        black_cells = self.black_cells()
+        neighbours_of_black_cells = []
+        for coord in black_cells:
+            neighbours_of_black_cells += self.get_neighbours(*coord)
+        return set.intersection(set(black_cells), set(neighbours_of_black_cells)) != set()
+    
+    def _contains_contraditions(self):
+        """
+        Grid contains contradictions if ANY of these conditions are true:
+        - any_regions_cut_off
+        - black square has any numbers
+        - cells_seen(1) > number  (number sees too many white cells)
+        - cells_seen(0) < number  (number sees too few blank cells)
+        """
+        if self._any_regions_cut_off(0):
+            return True
+        if self._any_black_cells_adjoin_each_other():
+            return True
+        # for coord in self.black_cells():
+        #     return False
+            
     
     def count_cells_in_each_direction(self, row, col):
         center = (row,col)
@@ -232,17 +269,7 @@ class Kurodoko(object):
     def get_all_white_cells(self, thresh):
         all_white_cells = set([coord for coord in self.valid_coords if self.shades[coord]>=thresh])
         return all_white_cells
-    
-    def _any_regions_cut_off(self, thresh):
-        white_cells = self.get_all_white_cells(thresh=thresh)
-        if len(white_cells) == 0:
-            # There cannot be any cut-off regions if there are no white regions.
-            return False
-        else:
-            one_cell = list(white_cells)[0]
-            connected_cells = self.collect_contiguous_cells_from(one_cell[0], one_cell[1], thresh)
-            return set(connected_cells) != set(white_cells)
-    
+        
     def number_is_valid_at(self, row, col):
         number = self.numbers[row,col]
         checks = [number > 0]

@@ -18,6 +18,8 @@
 #     x if number equals visible white space, then next blank cells black
 #     x when setting a cell as black, all neighbours must be white
 #     x if making a cell black would lead to discontiguous white areas, it must be white
+#     - test grid for contradictions
+#     - test if assignemtn leads to a contradiction
 #     - if number is larger than amount of space in row, then some must spill into column
 #     - if adding a white space introduces a contradiction, it must be black
 #     - if adding a black space introduces a contradiction, it must be white
@@ -70,7 +72,7 @@ def test_check_grid_is_solved():
     # Grid is solved when all squares are black or white
     grid = Kurodoko((3,3))
     grid.shades = np.array([[-1,1,1], [1,-1,1], [1,1,1]])
-    assert grid._grid_filled_out()
+    assert grid._is_filled_out()
 
 def test_count_cells_in_each_direction():
     grid = Kurodoko((9,4))
@@ -288,7 +290,7 @@ def test_solve_a_solvable_grid():
             if grid.numbers[coord] > 0:
                 grid.deduce_cell_maxes_visible_space(*coord)
                 grid.deduce_number_already_satisfied(*coord)
-    assert grid._grid_filled_out()
+    assert grid._is_filled_out()
 
 def test_get_exhausted_numbered_cells():
     grid = Kurodoko((3,3), set_numbers=[(0,0,5), (2,2,3)])
@@ -319,3 +321,41 @@ def test_solve_grid():
     grid.solve_grid()
     assert grid._is_solved_and_valid()
     assert grid.solving_iterations == 3
+
+def test_any_black_cells_adjoining():
+    grid = Kurodoko((3,3), set_shades=[(0,1)])
+    assert not grid._any_black_cells_adjoin_each_other()
+    grid.shades[0,0] = -1
+    assert grid._any_black_cells_adjoin_each_other()
+
+def test_detect_contradition():
+    # Normal grid fine
+    """
+    . X .
+    ? . ?
+    ? ? ?
+    """
+    grid = Kurodoko((3,3), set_shades=[(0,1)])
+    assert not grid._contains_contradition()
+    # Two black cells as neighbours not fine
+    grid.shades[0,0] = -1
+    assert grid._contains_contradition()
+    grid.shades[0,0] = 0
+    assert not grid._contains_contradition()
+    # Number bigger than possible, or smaller than already seen, not fine
+    grid.numbers[1,2] = 8
+    assert grid._contains_contradition()
+    grid.numbers[1,2] = 2
+    assert grid._contains_contradition()
+    # Unsolved grid is fine even if, when solved, it would be wrong
+    grid.numbers[1,2] = 3
+    assert not grid._contains_contradition()
+    
+    
+    
+
+# complex_grid = Kurodoko((9,9), set_numbers=[
+#     (0,5,9), (1,3,9), (1,7,9), (2,0,9), (2,2,15), (2,4,10),
+#     (3,3,6), (3,5,9), (4,2,7), (4,6,3), (5,3,5), (5,5,9),
+#     (6,4,6), (6,6,6), (6,8,7), (7,1,3), (7,5,13), (8,3,2)])
+# complex_grid.solve_grid()
