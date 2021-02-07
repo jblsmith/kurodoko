@@ -24,7 +24,7 @@
 # - can print grid
 #     - with numbers
 #     - with blank vs white vs black squares
-
+# x iterate over possible deducations until grid is solved
 
 from solve_kurodoko import *
 
@@ -70,7 +70,7 @@ def test_check_grid_is_solved():
     # Grid is solved when all squares are black or white
     grid = Kurodoko((3,3))
     grid.shades = np.array([[-1,1,1], [1,-1,1], [1,1,1]])
-    assert grid.grid_filled_out()
+    assert grid._grid_filled_out()
 
 def test_count_cells_in_each_direction():
     grid = Kurodoko((9,4))
@@ -228,7 +228,6 @@ def test_grid_contains_no_errors():
     assert not grid.grid_contains_no_errors()
 
 def test_deduce_max_spacer():
-    # breakpoint()
     assert grid_3_3_incomplete.cell_sees_max_possible(0,0,0)
     assert not grid_3_3_incomplete.cell_sees_max_possible(1,2,0)
 
@@ -282,7 +281,6 @@ def test_deduce_dont_split_grid():
     assert grid.shades[1,2]==1
 
 def test_solve_a_solvable_grid():
-    # breakpoint()
     grid = Kurodoko((5,5), set_numbers=[(0,0,4), (0,4,6), (2,1,9), (2,3,5), (4,0,2)])
     for i in range(5):
         for coord in grid.valid_coords:
@@ -290,7 +288,7 @@ def test_solve_a_solvable_grid():
             if grid.numbers[coord] > 0:
                 grid.deduce_cell_maxes_visible_space(*coord)
                 grid.deduce_number_already_satisfied(*coord)
-    assert grid.grid_filled_out()
+    assert grid._grid_filled_out()
 
 def test_get_exhausted_numbered_cells():
     grid = Kurodoko((3,3), set_numbers=[(0,0,5), (2,2,3)])
@@ -308,7 +306,6 @@ def test_get_unsolved_cells():
     ? ? ? ?      ? . ? ?       ? . . X       ? . . X
     ? ? ? ?      ? . ? ?       ? . ? .       ? . . .
     """
-    # breakpoint()
     assert set(grid.unsolved_cells()) == set(grid.valid_coords)
     grid.deduce_cell_maxes_visible_space(1,1)
     assert set(grid.unsolved_cells()) == set([(0,0), (0,2), (0,3), (2,0), (2,2), (2,3), (3,0), (3,2), (3,3)])
@@ -316,3 +313,9 @@ def test_get_unsolved_cells():
     assert set(grid.unsolved_cells()) == set([(0,0), (2,0), (3,0), (3,2)])
     grid.deduce_dont_split_grid(3,2)
     assert set(grid.unsolved_cells()) == set([(0,0), (2,0), (3,0)])
+
+def test_solve_grid():
+    grid = Kurodoko((4,4), set_numbers=[(1,1,7), (0,3,2), (2,0,4)])
+    grid.solve_grid()
+    assert grid._is_solved_and_valid()
+    assert grid.solving_iterations == 3

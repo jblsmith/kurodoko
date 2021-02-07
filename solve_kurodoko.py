@@ -74,12 +74,15 @@ class Kurodoko(object):
         for coord in neighbours:
             self.shades[coord] = 1
     
-    def grid_filled_out(self):
+    def _grid_filled_out(self):
         """
         Returns whether the grid is completed or not
         """
         return np.all(self.shades!=0)
 
+    def _is_solved_and_valid(self):
+        return self._grid_filled_out() and not self._any_regions_cut_off(1)
+    
     def count_cells_in_each_direction(self, row, col):
         center = (row,col)
         n_north = row 
@@ -151,7 +154,6 @@ class Kurodoko(object):
         return n_in_dir
     
     def coords_of_visible_cells_in_direction(self, row, col, direction, thresh):
-        # breakpoint()
         assert direction in ['north','south','east','west']
         n_cells_in_dir = self.count_visible_cells_in_direction(row, col, direction, thresh)
         if direction == 'north':
@@ -272,7 +274,6 @@ class Kurodoko(object):
     def grid_contains_no_errors(self):
         checks = [self.cell_is_valid(*coord) for coord in self.valid_coords]
         checks += [not self._any_regions_cut_off(thresh=0)]
-        # breakpoint()
         return all(checks)
     
     def cell_sees_max_possible(self, row, col, thresh):
@@ -306,3 +307,21 @@ class Kurodoko(object):
     def deduce_dont_split_grid(self, row, col):
         if self.shades[row,col] == 0 and self.cell_cannot_be_black(row, col):
             self.shades[row, col] = 1
+
+    def solve_grid(self):
+        prev_grid_state = self.shades[:].copy()
+        state_changed = True
+        self.solving_iterations = 0
+        while state_changed and (self.solving_iterations < 1000):
+            for coord in self.valid_coords:
+                if self.numbers[coord] > 0:
+                    self.deduce_cell_maxes_visible_space(*coord)
+                    self.deduce_number_already_satisfied(*coord)
+                if self.shades[coord] == 0:
+                    self.deduce_dont_split_grid(*coord)
+            next_grid_state = self.shades[:]
+            if np.all(prev_grid_state == next_grid_state):
+                state_changed = False
+            else:
+                prev_grid_state = next_grid_state.copy()
+            self.solving_iterations += 1
