@@ -328,6 +328,13 @@ def test_any_black_cells_adjoining():
     grid.shades[0,0] = -1
     assert grid._any_black_cells_adjoin_each_other()
 
+def test_number_sees_incorrect_amount():
+    grid = Kurodoko((3,3), set_numbers=[(0,0,7), (1,2,2), (2,0,3)], set_shades=[(0,1)])
+    assert grid._cell_sees_too_much(1,2)
+    assert grid._cell_sees_too_little(0,0)
+    assert not grid._cell_sees_too_much(2,0)
+    assert not grid._cell_sees_too_little(2,0)
+
 def test_detect_contradition():
     # Normal grid fine
     """
@@ -335,27 +342,23 @@ def test_detect_contradition():
     ? . ?
     ? ? ?
     """
+    # New grid fine
     grid = Kurodoko((3,3), set_shades=[(0,1)])
-    assert not grid._contains_contradition()
+    assert not grid._contains_contradiction()
+    
     # Two black cells as neighbours not fine
     grid.shades[0,0] = -1
-    assert grid._contains_contradition()
+    assert grid._contains_contradiction()
     grid.shades[0,0] = 0
-    assert not grid._contains_contradition()
+    assert not grid._contains_contradiction()
+    
     # Number bigger than possible, or smaller than already seen, not fine
-    grid.numbers[1,2] = 8
-    assert grid._contains_contradition()
-    grid.numbers[1,2] = 2
-    assert grid._contains_contradition()
+    grid.set_number(1,2,8)
+    assert grid._contains_contradiction()
+    grid.numbers[1,2] = 1
+    assert grid._contains_contradiction()
+    
     # Unsolved grid is fine even if, when solved, it would be wrong
     grid.numbers[1,2] = 3
-    assert not grid._contains_contradition()
-    
-    
-    
-
-# complex_grid = Kurodoko((9,9), set_numbers=[
-#     (0,5,9), (1,3,9), (1,7,9), (2,0,9), (2,2,15), (2,4,10),
-#     (3,3,6), (3,5,9), (4,2,7), (4,6,3), (5,3,5), (5,5,9),
-#     (6,4,6), (6,6,6), (6,8,7), (7,1,3), (7,5,13), (8,3,2)])
-# complex_grid.solve_grid()
+    assert not grid._contains_contradiction()
+  

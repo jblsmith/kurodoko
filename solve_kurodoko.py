@@ -104,7 +104,31 @@ class Kurodoko(object):
             neighbours_of_black_cells += self.get_neighbours(*coord)
         return set.intersection(set(black_cells), set(neighbours_of_black_cells)) != set()
     
-    def _contains_contraditions(self):
+    def _cell_sees_too_much(self, row, col):
+        """
+        A cell sees too much if the visible white cells are greater than the number.
+        """
+        if self.numbers[row,col] > 0:
+            return self.count_visible_cells_from(row,col,1) + 1 > self.numbers[row,col]
+        else:
+            return False
+    
+    def _cell_sees_too_little(self, row, col):
+        """
+        A cell sees to little if the visible blank cells are less than the number.
+        """
+        if self.numbers[row,col] > 0:
+            return self.count_visible_cells_from(row,col,0) + 1 < self.numbers[row,col]
+        else:
+            return False
+    
+    def _any_cell_sees_wrong_number(self):
+        coords = self.numbered_cells()
+        any_too_much = any([self._cell_sees_too_much(*coord) for coord in coords])
+        any_too_little = any([self._cell_sees_too_little(*coord) for coord in coords])
+        return any_too_much or any_too_little
+    
+    def _contains_contradiction(self):
         """
         Grid contains contradictions if ANY of these conditions are true:
         - any_regions_cut_off
@@ -114,11 +138,12 @@ class Kurodoko(object):
         """
         if self._any_regions_cut_off(0):
             return True
-        if self._any_black_cells_adjoin_each_other():
+        elif self._any_black_cells_adjoin_each_other():
             return True
-        # for coord in self.black_cells():
-        #     return False
-            
+        elif self._any_cell_sees_wrong_number():
+            return True
+        else:
+            return False
     
     def count_cells_in_each_direction(self, row, col):
         center = (row,col)
