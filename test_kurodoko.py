@@ -18,7 +18,8 @@
 #     x if number equals visible white space, then next blank cells black
 #     x when setting a cell as black, all neighbours must be white
 #     x if making a cell black would lead to discontiguous white areas, it must be white
-#     - test grid for contradictions
+#     x test grid for contradictions
+#     - deteremine most sensitive cells to consider next (next-visible blank cells and cells diagonal to black cells)
 #     - test if assignemtn leads to a contradiction
 #     - if number is larger than amount of space in row, then some must spill into column
 #     - if adding a white space introduces a contradiction, it must be black
@@ -115,6 +116,15 @@ def test_get_neighbours():
     grid = Kurodoko((2,4))
     assert sorted(grid.get_neighbours(0,0)) == sorted([(0,1), (1,0)])
     assert sorted(grid.get_neighbours(1,2)) == sorted([(1,1), (1,3), (0,2)])
+    assert grid.get_diagonal_neighbours(0,0) == [(1,1)]
+    grid = Kurodoko((4,4))
+    """
+    ....
+    ..x.
+    ...*
+    ..x.
+    """
+    assert sorted(grid.get_diagonal_neighbours(2,3)) == sorted([(1,2), (3,2)])
 
 def test_get_open_neighbours():
     assert grid_5_5_incomplete.get_open_neighbours(0,0,0) == [(0,1)]
@@ -361,4 +371,45 @@ def test_detect_contradition():
     # Unsolved grid is fine even if, when solved, it would be wrong
     grid.numbers[1,2] = 3
     assert not grid._contains_contradiction()
-  
+
+def can_solve_wikipedia_grid():
+    # Grid displayed on Wikipedia article for Kuromasu as "moderately difficult"
+    wikipedia_grid = Kurodoko((11,11), set_numbers=[
+        (0,2,9), (0,8,8), (1,8,7),
+        (2,4,12), (2,10,16), (3,0,9), (4,1,10),
+        (5,2,12), (5,4,8), (5,6,11), (5,8,3),
+        (6,9,3), (7,10,3), (8,0,7), (8,6,2),
+        (9,2,7), (10,2,2), (10,8,5)
+    ])
+    wikipedia_grid.solve_grid()
+    assert not wikipedia_grid._is_solved_and_valid()
+    # Stalls after 3 loops
+    assert wikipedia_grid.solving_iterations == 3
+    breakpoint()
+
+def test_find_most_sensitive_blank_cells():
+    grid = Kurodoko((5,5), set_shades=[(1,3),(2,2),(3,1)], set_numbers=[(2,0,4), (4,4,5)])
+    """
+    ? ? ? . ?
+    ? ? . X .
+    4 . X . ?
+    . X . ? ?
+    ? . ? ? 5
+    
+    The most sensitive cells are:
+    1. blank cells that are next-visible from a numbered cell:
+        (3,4), (4,3) from the 5 and (1,0) and (4,0) from the 4
+    2. cells diagonal to a black cell:
+        (0,2), (0,4), (1,1), (2,0), (2,4), (3,3), (4,0), (4,2)
+    """
+    assert set(grid.all_nearest_blank_cells()) == set([(1,0), (3,4), (4,0), (4,3)])
+    diagonal_to_black = grid.all_cells_diagonal_to_black_cells()
+    # Well, we actually only care about those that are diagonal to black and themselves BLANK:
+    cells_of_interest = set.intersection(set(diagonal_to_black), set(grid.blank_cells()))
+    assert cells_of_interest == set([(0,2), (0,4), (1,1), (2,4), (3,3), (4,0), (4,2)])
+
+# complex_grid = Kurodoko((9,9), set_numbers=[
+#     (0,5,9), (1,3,9), (1,7,9), (2,0,9), (2,2,15), (2,4,10),
+#     (3,3,6), (3,5,9), (4,2,7), (4,6,3), (5,3,5), (5,5,9),
+#     (6,4,6), (6,6,6), (6,8,7), (7,1,3), (7,5,13), (8,3,2)])
+# complex_grid.solve_grid()

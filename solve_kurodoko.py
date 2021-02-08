@@ -1,5 +1,8 @@
 import numpy as np
 
+def unfold_list_of_lists(list_of_lists):
+    return [item for sublist in list_of_lists for item in sublist]
+
 class Kurodoko(object):
     
     def __init__(self, grid_size, set_numbers=None, set_shades=None):
@@ -255,6 +258,14 @@ class Kurodoko(object):
         coords = [self.nearest_blank_cell_in_direction(row, col, direction) for direction in ['north', 'south', 'east', 'west']]
         return [coord for coord in coords if coord]
     
+    def all_nearest_blank_cells(self):
+        coords = [self.nearest_blank_cells_from(*numbered_cell) for numbered_cell in self.numbered_cells()]
+        return list(set(unfold_list_of_lists(coords)))
+    
+    def all_cells_diagonal_to_black_cells(self):
+        coords = [self.get_diagonal_neighbours(*black_cell) for black_cell in self.black_cells()]
+        return list(set(unfold_list_of_lists(coords)))
+    
     def collect_contiguous_cells_from(self, row, col, thresh):
         """
         Starting in the cell at (row,col), collect all cells that are
@@ -284,6 +295,10 @@ class Kurodoko(object):
     
     def get_neighbours(self, row, col):
         neighbours = [(row-1,col), (row+1,col), (row,col-1), (row,col+1)]
+        return list(set.intersection(set(neighbours), set(self.valid_coords)))
+    
+    def get_diagonal_neighbours(self, row, col):
+        neighbours = [(row-1,col-1), (row+1,col-1), (row-1,col+1), (row+1,col+1)]
         return list(set.intersection(set(neighbours), set(self.valid_coords)))
     
     def get_open_neighbours(self, row, col, thresh):
