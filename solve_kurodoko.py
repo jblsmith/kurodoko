@@ -263,6 +263,10 @@ class Kurodoko(object):
         coords = [self.nearest_blank_cells_from(*numbered_cell) for numbered_cell in self.numbered_cells()]
         return list(set(unfold_list_of_lists(coords)))
     
+    def all_cells_diagonal_to_cells(self, coords):
+        diagonal_coords = [self.get_diagonal_neighbours(*coord) for coord in coords]
+        return list(set(unfold_list_of_lists(diagonal_coords)))
+    
     def all_cells_diagonal_to_black_cells(self):
         coords = [self.get_diagonal_neighbours(*black_cell) for black_cell in self.black_cells()]
         return list(set(unfold_list_of_lists(coords)))
@@ -400,7 +404,18 @@ class Kurodoko(object):
     def clone(self):
         return deepcopy(self)
     
-    def check_can_be_black(self, row, col):
+    def get_cant_be_black_candidates(self):
+        return self.all_nearest_blank_cells() + self.all_cells_diagonal_to_black_cells() + self.all_cells_diagonal_to_cells(self.numbered_cells())
+    
+    def get_cant_be_white_candidates(self):
+        return self.all_nearest_blank_cells()
+    
+    def check_must_not_be_black(self, row, col):
         fake_grid = self.clone()
         fake_grid.set_shade_black(row, col)
-        return not fake_grid._contains_contradiction()
+        return fake_grid._contains_contradiction()
+    
+    def check_must_not_be_white(self, row, col):
+        fake_grid = self.clone()
+        fake_grid.shades[(row, col)] = 1
+        return fake_grid._contains_contradiction()

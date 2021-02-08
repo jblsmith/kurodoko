@@ -402,6 +402,8 @@ def test_find_most_sensitive_blank_cells():
         (3,4), (4,3) from the 5 and (1,0) and (4,0) from the 4
     2. blank cells diagonal to a black cell:
         (0,2), (0,4), (1,1), (2,0), (2,4), (3,3), (4,0), (4,2)
+    3. blank cells diagonal to a numbered cell:
+        (1,1), (3,3)
     """
     assert set(grid.all_nearest_blank_cells()) == set([(1,0), (3,4), (4,0), (4,3)])
     diag_to_black = grid.all_cells_diagonal_to_black_cells()
@@ -420,19 +422,38 @@ def test_clone_Kurodoko():
     assert np.all(grid.numbers == grid_copy.numbers)
 
 def test_try_assigning_cell():
-    grid = Kurodoko((4,4), set_numbers=[(1,1,6)])
+    grid = Kurodoko((4,4), set_numbers=[(1,1,6), (2,3,2)])
     """
     By trying to set the squares that are blank as black, we should reach a contradiction.
-    ? ? ? ?
-    ? 6 . ?
-    ? . ? ?
-    ? ? ? ?
+    
+    Initial     Deduce cannot    Deduce cannot
+    grid:       be black:        be white:
+    ? ? ? ?     ? ? ? ?          ? ? ? ?
+    ? 6 ? ?     ? 6 . ?          ? 6 . ?
+    ? ? ? 2     ? . ? 2          ? . X 2
+    ? ? ? ?     ? ? ? ?          ? ? . ?
     """
+    black_testers = grid.get_cant_be_black_candidates()
+    white_testers = grid.get_cant_be_white_candidates()
+    diagonal_to_black = []
+    diagonal_to_number = [(0,0), (0,2), (2,0), (2,2), (1,2), (3,2)]
+    nearest_visible_blank = [(0,1), (1,0), (1,2), (2,1), (1,3), (2,2), (3,3)]
+    assert set(black_testers) == set(diagonal_to_black + diagonal_to_number + nearest_visible_blank)
+    # White testers are just those nearest visible to blank cells:
+    assert sorted(white_testers) == sorted(nearest_visible_blank)
+    
+    breakpoint()
+    assert all([grid.check_must_not_be_black(1,2), grid.check_must_not_be_black(2,1)])
+    can_be_black_coords = set.difference(set(grid.valid_coords), set([(1,2), (2,1), (1,1), (2,3)]))
+    # for cc in can_be_black_coords:
+    # if grid.check_must_not_be_black(*cc):
+    assert not any([grid.check_must_not_be_black(*coord) for coord in can_be_black_coords])
+    grid.shades[1,2] = 1
+    grid.shades[2,1] = 1
     white_testers = grid.all_nearest_blank_cells()
-    black_testers = grid.all_nearest_blank_cells() + grid.all_cells_diagonal_to_black_cells()
-    assert (1,2) in black_testers
-    valid = grid.check_can_be_black(1,2)
-    assert not valid
+    assert (2,2) in white_testers
+    assert grid.check_must_not_be_white(2,2)
+
     
 
 # complex_grid = Kurodoko((9,9), set_numbers=[
