@@ -401,6 +401,6 @@ class Kurodoko(object):
         return deepcopy(self)
     
     def check_can_be_black(self, row, col):
-        fake_grid = Kurodoko(self.grid_size, set_shades=self.black_cells())
+        fake_grid = self.clone()
         fake_grid.set_shade_black(row, col)
-        return fake_grid._contains_contradiction()
+        return not fake_grid._contains_contradiction()
