@@ -1,3 +1,4 @@
+from copy import deepcopy
 import numpy as np
 
 def unfold_list_of_lists(list_of_lists):
@@ -266,6 +267,9 @@ class Kurodoko(object):
         coords = [self.get_diagonal_neighbours(*black_cell) for black_cell in self.black_cells()]
         return list(set(unfold_list_of_lists(coords)))
     
+    def all_blank_cells_diagonal_to_black_cells(self):
+        return list(set.intersection(set(self.all_cells_diagonal_to_black_cells()), set(self.blank_cells())))
+    
     def collect_contiguous_cells_from(self, row, col, thresh):
         """
         Starting in the cell at (row,col), collect all cells that are
@@ -392,3 +396,11 @@ class Kurodoko(object):
             else:
                 prev_grid_state = next_grid_state.copy()
             self.solving_iterations += 1
+    
+    def clone(self):
+        return deepcopy(self)
+    
+    def check_can_be_black(self, row, col):
+        fake_grid = Kurodoko(self.grid_size, set_shades=self.black_cells())
+        fake_grid.set_shade_black(row, col)
+        return fake_grid._contains_contradiction()

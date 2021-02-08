@@ -19,7 +19,7 @@
 #     x when setting a cell as black, all neighbours must be white
 #     x if making a cell black would lead to discontiguous white areas, it must be white
 #     x test grid for contradictions
-#     - deteremine most sensitive cells to consider next (next-visible blank cells and cells diagonal to black cells)
+#     x deteremine most sensitive cells to consider next (next-visible blank cells and cells diagonal to black cells)
 #     - test if assignemtn leads to a contradiction
 #     - if number is larger than amount of space in row, then some must spill into column
 #     - if adding a white space introduces a contradiction, it must be black
@@ -28,6 +28,7 @@
 #     - with numbers
 #     - with blank vs white vs black squares
 # x iterate over possible deducations until grid is solved
+# x clone grid
 
 from solve_kurodoko import *
 
@@ -399,14 +400,40 @@ def test_find_most_sensitive_blank_cells():
     The most sensitive cells are:
     1. blank cells that are next-visible from a numbered cell:
         (3,4), (4,3) from the 5 and (1,0) and (4,0) from the 4
-    2. cells diagonal to a black cell:
+    2. blank cells diagonal to a black cell:
         (0,2), (0,4), (1,1), (2,0), (2,4), (3,3), (4,0), (4,2)
     """
     assert set(grid.all_nearest_blank_cells()) == set([(1,0), (3,4), (4,0), (4,3)])
-    diagonal_to_black = grid.all_cells_diagonal_to_black_cells()
+    diag_to_black = grid.all_cells_diagonal_to_black_cells()
+    assert set(diag_to_black) == set([(0,2), (0,4), (1,1), (2,0), (2,4), (3,3), (4,0), (4,2), (1,3), (2,2), (3,1)])
     # Well, we actually only care about those that are diagonal to black and themselves BLANK:
-    cells_of_interest = set.intersection(set(diagonal_to_black), set(grid.blank_cells()))
-    assert cells_of_interest == set([(0,2), (0,4), (1,1), (2,4), (3,3), (4,0), (4,2)])
+    blank_diagonal_to_black = grid.all_blank_cells_diagonal_to_black_cells()
+    assert set(blank_diagonal_to_black) == set([(0,2), (0,4), (1,1), (2,4), (3,3), (4,0), (4,2)])
+
+def test_clone_Kurodoko():
+    grid = Kurodoko((5,5), set_numbers=[(0,0,4), (0,4,6), (2,1,9), (2,3,5), (4,0,2)])
+    grid_copy = grid.clone()
+    assert np.all(grid.shades == grid_copy.shades)
+    assert np.all(grid.numbers == grid_copy.numbers)
+    grid.solve_grid()
+    assert not np.all(grid.shades == grid_copy.shades)
+    assert np.all(grid.numbers == grid_copy.numbers)
+
+def test_try_assigning_cell():
+    grid = Kurodoko((4,4), set_numbers=[(1,1,6)])
+    """
+    By trying to set the squares that are blank as black, we should reach a contradiction.
+    ? ? ? ?
+    ? 6 . ?
+    ? . ? ?
+    ? ? ? ?
+    """
+    white_testers = grid.all_nearest_blank_cells()
+    black_testers = grid.all_nearest_blank_cells() + grid.all_cells_diagonal_to_black_cells()
+    assert (1,2) in black_testers
+    valid = grid.check_can_be_black(1,2)
+    assert not valid
+    
 
 # complex_grid = Kurodoko((9,9), set_numbers=[
 #     (0,5,9), (1,3,9), (1,7,9), (2,0,9), (2,2,15), (2,4,10),
