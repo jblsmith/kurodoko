@@ -389,7 +389,7 @@ class Kurodoko(object):
         if self.shades[row,col] == 0 and self.cell_cannot_be_black(row, col):
             self.shades[row, col] = 1
 
-    def solve_grid(self):
+    def solve_grid_with_deductions(self):
         prev_grid_state = self.shades[:].copy()
         state_changed = True
         self.solving_iterations = 0
@@ -425,3 +425,27 @@ class Kurodoko(object):
         fake_grid = self.clone()
         fake_grid.shades[(row, col)] = 1
         return fake_grid._contains_contradiction()
+    
+    def solve_grid_with_deductions_and_single_conjectures(self):
+        prev_grid_state = self.shades[:].copy()
+        state_changed = True
+        self.solving_iterations = 0
+        while state_changed and (self.solving_iterations < 1000):
+            for coord in self.blank_cells():
+                if self.numbers[coord] > 0:
+                    self.deduce_cell_maxes_visible_space(*coord)
+                    self.deduce_number_already_satisfied(*coord)
+                if self.shades[coord] == 0:
+                    self.deduce_dont_split_grid(*coord)
+            for coord in self.get_cant_be_black_candidates():
+                if self.check_must_not_be_black(*coord):
+                    self.shades[coord] = 1
+            for coord in self.get_cant_be_white_candidates():
+                if self.check_must_not_be_white(*coord):
+                    self.set_shade_black(*coord)
+            next_grid_state = self.shades[:]
+            if np.all(prev_grid_state == next_grid_state):
+                state_changed = False
+            else:
+                prev_grid_state = next_grid_state.copy()
+            self.solving_iterations += 1

@@ -327,9 +327,9 @@ def test_get_unsolved_cells():
     grid.deduce_dont_split_grid(3,2)
     assert set(grid.unsolved_cells()) == set([(0,0), (2,0), (3,0)])
 
-def test_solve_grid():
+def test_solve_grid_with_deductions():
     grid = Kurodoko((4,4), set_numbers=[(1,1,7), (0,3,2), (2,0,4)])
-    grid.solve_grid()
+    grid.solve_grid_with_deductions()
     assert grid._is_solved_and_valid()
     assert grid.solving_iterations == 3
 
@@ -382,7 +382,7 @@ def can_solve_wikipedia_grid():
         (6,9,3), (7,10,3), (8,0,7), (8,6,2),
         (9,2,7), (10,2,2), (10,8,5)
     ])
-    wikipedia_grid.solve_grid()
+    wikipedia_grid.solve_grid_with_deductions()
     assert not wikipedia_grid._is_solved_and_valid()
     # Stalls after 3 loops
     assert wikipedia_grid.solving_iterations == 3
@@ -417,7 +417,7 @@ def test_clone_Kurodoko():
     grid_copy = grid.clone()
     assert np.all(grid.shades == grid_copy.shades)
     assert np.all(grid.numbers == grid_copy.numbers)
-    grid.solve_grid()
+    grid.solve_grid_with_deductions()
     assert not np.all(grid.shades == grid_copy.shades)
     assert np.all(grid.numbers == grid_copy.numbers)
 
@@ -463,10 +463,13 @@ def test_check_assignment():
     grid.shades[2,1] = 1
     assert grid.check_must_not_be_white(2,2)
 
-    
-
-# complex_grid = Kurodoko((9,9), set_numbers=[
-#     (0,5,9), (1,3,9), (1,7,9), (2,0,9), (2,2,15), (2,4,10),
-#     (3,3,6), (3,5,9), (4,2,7), (4,6,3), (5,3,5), (5,5,9),
-#     (6,4,6), (6,6,6), (6,8,7), (7,1,3), (7,5,13), (8,3,2)])
-# complex_grid.solve_grid()
+def test_complex_grid():
+    complex_grid = Kurodoko((9,9), set_numbers=[
+        (0,5,9), (1,3,9), (1,7,9), (2,0,9), (2,2,15), (2,4,10),
+        (3,3,6), (3,5,9), (4,2,7), (4,6,3), (5,3,5), (5,5,9),
+        (6,4,6), (6,6,6), (6,8,7), (7,1,3), (7,5,13), (8,3,2)])
+    complex_grid.solve_grid_with_deductions()
+    assert not complex_grid._is_filled_out()
+    complex_grid.solve_grid_with_deductions_and_single_conjectures()
+    assert complex_grid._is_solved_and_valid()
+    assert complex_grid.solving_iterations == 6
