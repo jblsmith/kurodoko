@@ -421,7 +421,7 @@ def test_clone_Kurodoko():
     assert not np.all(grid.shades == grid_copy.shades)
     assert np.all(grid.numbers == grid_copy.numbers)
 
-def test_try_assigning_cell():
+def test_get_cant_be_something_candidates():
     grid = Kurodoko((4,4), set_numbers=[(1,1,6), (2,3,2)])
     """
     By trying to set the squares that are blank as black, we should reach a contradiction.
@@ -441,17 +441,26 @@ def test_try_assigning_cell():
     assert set(black_testers) == set(diagonal_to_black + diagonal_to_number + nearest_visible_blank)
     # White testers are just those nearest visible to blank cells:
     assert sorted(white_testers) == sorted(nearest_visible_blank)
+
+def test_check_assignment():
+    grid = Kurodoko((4,4), set_numbers=[(1,1,6), (2,3,2)])
+    """
+    By trying to set the squares that are blank as black, we should reach a contradiction.
     
-    breakpoint()
-    assert all([grid.check_must_not_be_black(1,2), grid.check_must_not_be_black(2,1)])
-    can_be_black_coords = set.difference(set(grid.valid_coords), set([(1,2), (2,1), (1,1), (2,3)]))
-    # for cc in can_be_black_coords:
-    # if grid.check_must_not_be_black(*cc):
-    assert not any([grid.check_must_not_be_black(*coord) for coord in can_be_black_coords])
+    Initial     Deduce cannot    Deduce cannot
+    grid:       be black:        be white:
+    ? ? ? ?     ? ? ? ?          ? ? ? ?
+    ? 6 ? ?     ? 6 . ?          ? 6 . ?
+    ? ? ? 2     ? . ? 2          ? . X 2
+    ? ? ? ?     ? ? ? ?          ? ? . ?
+    """
+    cannot_be_black = [(1,1), (2,3), (1,2), (2,1)]
+    can_be_black = [coord for coord in grid.valid_coords if coord not in cannot_be_black]
+    assert all([grid.check_must_not_be_black(*coord) for coord in cannot_be_black])
+    assert all([not grid.check_must_not_be_black(*coord) for coord in can_be_black])
+    assert all([not grid.check_must_not_be_white(*coord) for coord in grid.valid_coords])
     grid.shades[1,2] = 1
     grid.shades[2,1] = 1
-    white_testers = grid.all_nearest_blank_cells()
-    assert (2,2) in white_testers
     assert grid.check_must_not_be_white(2,2)
 
     

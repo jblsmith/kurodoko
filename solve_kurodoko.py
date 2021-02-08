@@ -132,6 +132,10 @@ class Kurodoko(object):
         any_too_little = any([self._cell_sees_too_little(*coord) for coord in coords])
         return any_too_much or any_too_little
     
+    def _any_numbered_cell_black(self):
+        coords = self.numbered_cells()
+        return any([self.shades[coord]==-1 for coord in coords])
+    
     def _contains_contradiction(self):
         """
         Grid contains contradictions if ANY of these conditions are true:
@@ -145,6 +149,8 @@ class Kurodoko(object):
         elif self._any_black_cells_adjoin_each_other():
             return True
         elif self._any_cell_sees_wrong_number():
+            return True
+        elif self._any_numbered_cell_black():
             return True
         else:
             return False
@@ -412,7 +418,7 @@ class Kurodoko(object):
     
     def check_must_not_be_black(self, row, col):
         fake_grid = self.clone()
-        fake_grid.set_shade_black(row, col)
+        fake_grid.shades[(row, col)] = -1
         return fake_grid._contains_contradiction()
     
     def check_must_not_be_white(self, row, col):
