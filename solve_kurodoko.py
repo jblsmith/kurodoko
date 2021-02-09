@@ -417,7 +417,17 @@ class Kurodoko(object):
         return self.all_nearest_blank_cells()
     
     def check_must_not_be_black(self, row, col):
+        """
+        Tests only for direct consequences of a cell being black.
+        If you used set_shade_black instead of directly setting shade = -1,
+        you could test with a bit more look-ahead, but then you would
+        need to test whether the cell had a number in it.
+        """
         fake_grid = self.clone()
+        # try:
+        #     fake_grid.set_shade_black(row,col)
+        #     return fake_grid._contains_contradiction()
+        # except:
         fake_grid.shades[(row, col)] = -1
         return fake_grid._contains_contradiction()
     

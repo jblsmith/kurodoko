@@ -473,3 +473,19 @@ def test_complex_grid():
     complex_grid.solve_grid_with_deductions_and_single_conjectures()
     assert complex_grid._is_solved_and_valid()
     assert complex_grid.solving_iterations == 6
+
+def test_can_solve_wikipedia_grid():
+    # Grid displayed on Wikipedia article for Kuromasu as "moderately difficult"
+    wikipedia_grid = Kurodoko((11,11), set_numbers=[
+        (0,2,9), (0,8,8), (1,8,7),
+        (2,4,12), (2,10,16), (3,0,9), (4,1,10),
+        (5,2,12), (5,4,8), (5,6,11), (5,8,3),
+        (6,9,3), (7,10,3), (8,0,7), (8,6,2),
+        (9,2,7), (10,2,2), (10,8,5)
+    ])
+    wikipedia_grid.solve_grid_with_deductions_and_single_conjectures()
+    assert not wikipedia_grid._is_solved_and_valid()
+    assert wikipedia_grid.solving_iterations == 6
+    # Still can't solve this level of puzzle though! Will need depth-first searching
+    # of solutions to go further.
+
