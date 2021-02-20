@@ -62,6 +62,11 @@ class Kurodoko(object):
         for row,col,number in assignment_list:
             self.set_number(row, col, number)
     
+    def neighbouring_shades(self, row, col):
+        neighbours = self.get_neighbours(row, col)
+        neighbour_shades = [self.shades[coord] for coord in neighbours]
+        return neighbour_shades
+    
     def set_shade_black(self, row, col):
         """
         Safe way to set a cell black:
@@ -380,10 +385,13 @@ class Kurodoko(object):
                 self.set_shade_black(*coord)
     
     def cell_cannot_be_black(self, row, col):
-        fake_grid = Kurodoko(self.grid_size, set_shades=self.black_cells())
-        fake_grid.set_shade_black(row, col)
-        # If any regions are now cut off, then cell cannot be black; return True.
-        return fake_grid._any_regions_cut_off(0)
+        fake_grid = self.clone()
+        if -1 in fake_grid.neighbouring_shades(row, col):
+            return True
+        else:
+            fake_grid.set_shade_black(row, col)
+            # If any regions are now cut off, then cell cannot be black; return True.
+            return fake_grid._any_regions_cut_off(0)
     
     def deduce_dont_split_grid(self, row, col):
         if self.shades[row,col] == 0 and self.cell_cannot_be_black(row, col):

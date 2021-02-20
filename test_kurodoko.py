@@ -386,7 +386,7 @@ def can_solve_wikipedia_grid():
     assert not wikipedia_grid._is_solved_and_valid()
     # Stalls after 3 loops
     assert wikipedia_grid.solving_iterations == 3
-    breakpoint()
+    # breakpoint()
 
 def test_find_most_sensitive_blank_cells():
     grid = Kurodoko((5,5), set_shades=[(1,3),(2,2),(3,1)], set_numbers=[(2,0,4), (4,4,5)])
