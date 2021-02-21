@@ -20,7 +20,7 @@
 #     x if making a cell black would lead to discontiguous white areas, it must be white
 #     x test grid for contradictions
 #     x deteremine most sensitive cells to consider next (next-visible blank cells and cells diagonal to black cells)
-#     - test if assignemtn leads to a contradiction
+#     - test if assignment leads to a contradiction
 #     - if number is larger than amount of space in row, then some must spill into column
 #     - if adding a white space introduces a contradiction, it must be black
 #     - if adding a black space introduces a contradiction, it must be white
@@ -446,7 +446,7 @@ def test_check_assignment():
     grid = Kurodoko((4,4), set_numbers=[(1,1,6), (2,3,2)])
     """
     By trying to set the squares that are blank as black, we should reach a contradiction.
-    
+
     Initial     Deduce cannot    Deduce cannot
     grid:       be black:        be white:
     ? ? ? ?     ? ? ? ?          ? ? ? ?
@@ -483,9 +483,31 @@ def test_can_solve_wikipedia_grid():
         (6,9,3), (7,10,3), (8,0,7), (8,6,2),
         (9,2,7), (10,2,2), (10,8,5)
     ])
-    wikipedia_grid.solve_grid_with_deductions_and_single_conjectures()
-    assert not wikipedia_grid._is_solved_and_valid()
+    solved = wikipedia_grid.solve_grid_with_deductions_and_single_conjectures()
+    assert (not wikipedia_grid._is_solved_and_valid()) and (not solved)
     assert wikipedia_grid.solving_iterations == 6
     # Still can't solve this level of puzzle though! Will need depth-first searching
     # of solutions to go further.
+    # Or, just one more depth might do the trick:
+    solved = wikipedia_grid.solve_grid_with_deductions_and_single_conjectures(branched=True)
+    assert solved
+    assert wikipedia_grid.solving_iterations == 10
 
+
+def test_conclude_grid_is_unsolvable():
+    bad_grid = Kurodoko((3,3), set_numbers=[(1,1,3), (2,1,2)])
+    """
+    Initial     Deduce Xs from 2
+    grid:       and blanks next to Xs:
+    ? ? ?       . X .
+    ? 3 ?       . 3 .
+    ? 2 ?       X 2 X
+    """
+    outcome = bad_grid.solve_grid_with_deductions_and_single_conjectures()
+    assert outcome == -1
+    grid = Kurodoko((5,5), set_numbers=[(1,1,5),(3,3,5),(1,3,5),(3,1,5),(2,0,9),(4,2,3)])
+    outcome = grid.solve_grid_with_deductions_and_single_conjectures()
+    assert outcome == 0
+    grid.numbers[4,4] = 7
+    outcome = grid.solve_grid_with_deductions_and_single_conjectures()
+    assert outcome == 1

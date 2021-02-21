@@ -419,7 +419,16 @@ class Kurodoko(object):
         return deepcopy(self)
     
     def get_cant_be_black_candidates(self):
-        return self.all_nearest_blank_cells() + self.all_cells_diagonal_to_black_cells() + self.all_cells_diagonal_to_cells(self.numbered_cells())
+        """
+        Can't-be-black-candidates are cells that are blank but which have
+        some likelihood of not being able to be black. That includes:
+        - nearest blank cells (seen from a numbered cell)
+        - cells diagonal to black cells
+        - cells diagonal to numbered cells (since making them black adds 2
+          white neighbours to the numbered cell)
+        """
+        candidates = self.all_nearest_blank_cells() + self.all_cells_diagonal_to_black_cells() + self.all_cells_diagonal_to_cells(self.numbered_cells())
+        return list(set.intersection(set(candidates), set(self.blank_cells())))
     
     def get_cant_be_white_candidates(self):
         return self.all_nearest_blank_cells()
@@ -432,10 +441,6 @@ class Kurodoko(object):
         need to test whether the cell had a number in it.
         """
         fake_grid = self.clone()
-        # try:
-        #     fake_grid.set_shade_black(row,col)
-        #     return fake_grid._contains_contradiction()
-        # except:
         fake_grid.shades[(row, col)] = -1
         return fake_grid._contains_contradiction()
     
@@ -444,7 +449,18 @@ class Kurodoko(object):
         fake_grid.shades[(row, col)] = 1
         return fake_grid._contains_contradiction()
     
-    def solve_grid_with_deductions_and_single_conjectures(self):
+    def solve_grid_with_deductions_and_single_conjectures(self, direct=True, single=True, branched=False):
+        """
+        Attempts to fill out grid by pursuing:
+        - direct detections (e.g., if this cell already sees enough white cells, next blank cells must be black)
+        - single conjectures (e.g., "could this cell be black? If not, set as white.")
+        - branched conjectures (e.g., "try setting a cell as white or black. If one leads to a contradiction but the other doesn't, accept the correct one.)
+        
+        It modifies the state of the Grid, and returns one of three values:
+        ...  1 if it completely solves the grid
+        ... -1 if it encounters a contradiction while solving
+        ...  0 if it can no longer make any new deductions, but has not solved the grid.
+        """
         prev_grid_state = self.shades[:].copy()
         state_changed = True
         self.solving_iterations = 0
@@ -458,12 +474,63 @@ class Kurodoko(object):
             for coord in self.get_cant_be_black_candidates():
                 if self.check_must_not_be_black(*coord):
                     self.shades[coord] = 1
+                    if self._contains_contradiction():
+                        return -1
             for coord in self.get_cant_be_white_candidates():
                 if self.check_must_not_be_white(*coord):
                     self.set_shade_black(*coord)
+                    if self._contains_contradiction():
+                        return -1
+            if branched:
+                for coord in self.get_cant_be_black_candidates() + self.get_cant_be_white_candidates():
+                    if self.shades[coord] == 0:
+                        still_viable = self.make_branched_conjecture(coord)
+                        if not still_viable:
+                            return -1
             next_grid_state = self.shades[:]
             if np.all(prev_grid_state == next_grid_state):
                 state_changed = False
             else:
                 prev_grid_state = next_grid_state.copy()
             self.solving_iterations += 1
+        if self._is_solved_and_valid():
+            return 1
+        elif self._contains_contradiction():
+            return -1
+        else:
+            return 0
+    
+    def make_branched_conjecture(self, coord):
+        # Must be pivoting on a blank cell:
+        assert self.shades[coord] == 0
+        outcome_black, outcome_white = get_x_y_outcomes(self, coord)
+        action, cell_value = interpret_x_y_outcomes(outcome_black, outcome_white)
+        if action == 1:
+            self.shades[coord] = cell_value
+            self.solve_grid_with_deductions_and_single_conjectures()
+            return True
+        elif action == 1:
+            return False
+        elif action == 0:
+            pass
+    
+def get_x_y_outcomes(grid, candidate):
+    grid_x = grid.clone()
+    grid_y = grid.clone()
+    grid_x.shades[candidate] = -1
+    grid_y.shades[candidate] = 1
+    outcome_x = grid_x.solve_grid_with_deductions_and_single_conjectures()
+    outcome_y = grid_y.solve_grid_with_deductions_and_single_conjectures()
+    return outcome_x, outcome_y
+
+def interpret_x_y_outcomes(outcome_x, outcome_y):
+    if (outcome_x, outcome_y) in [(-1,0), (-1,1), (0,1)]:
+        return 1, 1
+    elif (outcome_x, outcome_y) in [(0,-1), (1,-1), (1,0)]:
+        return 1, -1
+    elif outcome_x == outcome_y == -1:
+        return -1, None
+    elif outcome_x == outcome_y == 0:
+        return 0, None
+    elif outcome_x == outcome_y == -1:
+        return -1, None
