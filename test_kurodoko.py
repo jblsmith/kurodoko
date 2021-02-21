@@ -491,7 +491,7 @@ def test_can_solve_wikipedia_grid():
     # Or, just one more depth might do the trick:
     solved = wikipedia_grid.solve_grid_with_deductions_and_single_conjectures(branched=True)
     assert solved
-    assert wikipedia_grid.solving_iterations == 10
+    assert wikipedia_grid.solving_iterations == 11
 
 
 def test_conclude_grid_is_unsolvable():
