@@ -511,3 +511,24 @@ def test_conclude_grid_is_unsolvable():
     grid.numbers[4,4] = 7
     outcome = grid.solve_grid_with_deductions_and_single_conjectures()
     assert outcome == 1
+
+def test_conclude_grid_is_unsolvable():
+    bad_grid = Kurodoko((3,3), set_numbers=[(0,0,3), (1,1,3), (2,2,3)])
+    """
+    Initial     Solution 1:  Solution 1:
+    grid:       
+    3 ? ?       3 . .        3 . .
+    ? 3 ?       X 3 X        X 3 X
+    ? ? 3       . . 3        . . 3
+    """
+    outcome = bad_grid.solve_grid_with_deductions_and_single_conjectures(branched=True)
+    assert outcome == -1
+    grid = Kurodoko((5,5), set_numbers=[(1,1,5),(3,3,5),(1,3,5),(3,1,5),(2,0,9),(4,2,3)])
+    outcome = grid.solve_grid_with_deductions_and_single_conjectures(branched=True)
+    assert outcome == 0
+    grid.numbers[4,4] = 7
+    outcome = grid.solve_grid_with_deductions_and_single_conjectures(branched=True)
+    assert outcome == 1
+    breakpoint()
+
+# from solve_kurodoko import *

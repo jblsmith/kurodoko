@@ -22,6 +22,7 @@ class Kurodoko(object):
         if set_shades is not None:
             for coord in set_shades:
                 self.set_shade_black(*coord)
+        self.reasonings = []
     
     def numbered_cells(self):
         return [coord for coord in self.valid_coords if self.numbers[coord]>0]
@@ -484,7 +485,8 @@ class Kurodoko(object):
             if branched:
                 for coord in self.get_cant_be_black_candidates() + self.get_cant_be_white_candidates():
                     if self.shades[coord] == 0:
-                        still_viable = self.make_branched_conjecture(coord)
+                        still_viable, reason = self.make_branched_conjecture(coord)
+                        self.reasonings += [reason]
                         if not still_viable:
                             return -1
             next_grid_state = self.shades[:]
@@ -505,15 +507,15 @@ class Kurodoko(object):
         assert self.shades[coord] == 0
         outcome_black, outcome_white = get_x_y_outcomes(self, coord)
         action, cell_value = interpret_x_y_outcomes(outcome_black, outcome_white)
-        if action == 1:
+        if action == "make_clear_deduction":
             self.shades[coord] = cell_value
             self.solve_grid_with_deductions_and_single_conjectures()
-            return True
-        elif action == 1:
-            return False
-        elif action == 0:
-            pass
-    
+            return True, action
+        elif action in ["unsolvable_grid", "two_solutions_exist"]:
+            return False, action
+        elif action in ["no_clear_conclusion"]:
+            return True, action
+
 def get_x_y_outcomes(grid, candidate):
     grid_x = grid.clone()
     grid_y = grid.clone()
@@ -524,13 +526,17 @@ def get_x_y_outcomes(grid, candidate):
     return outcome_x, outcome_y
 
 def interpret_x_y_outcomes(outcome_x, outcome_y):
-    if (outcome_x, outcome_y) in [(-1,0), (-1,1), (0,1)]:
-        return 1, 1
-    elif (outcome_x, outcome_y) in [(0,-1), (1,-1), (1,0)]:
-        return 1, -1
-    elif outcome_x == outcome_y == -1:
-        return -1, None
-    elif outcome_x == outcome_y == 0:
-        return 0, None
-    elif outcome_x == outcome_y == -1:
-        return -1, None
+    outcome_tuple = (outcome_x, outcome_y)
+    if outcome_tuple in [(-1,0), (-1,1)]:
+        # Definite contradiction to outcome_x
+        return "make_clear_deduction", 1
+    elif outcome_tuple in [(0,-1), (1,-1)]:
+        # Definite contradiction to outcome_y
+        return "make_clear_deduction", -1
+    elif outcome_tuple in [(-1,-1)]:
+        return "unsolvable_grid", None
+    elif outcome_tuple in [(1,1)]:
+        return "two_solutions_exist", None
+    elif outcome_tuple in [(0,0), (0,1), (1,0)]:
+        # Cannot decide since we cannot rule out a (1,1) outcome.
+        return "no_clear_conclusion", None
