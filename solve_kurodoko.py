@@ -540,3 +540,16 @@ def interpret_x_y_outcomes(outcome_x, outcome_y):
     elif outcome_tuple in [(0,0), (0,1), (1,0)]:
         # Cannot decide since we cannot rule out a (1,1) outcome.
         return "no_clear_conclusion", None
+
+def make_kurodoko_from_file(filepath):
+    with open(filepath) as textfile:
+        text = textfile.readlines()
+    text_lines = [line.strip().split(",") for line in text]
+    grid_size = (len(text_lines), len(text_lines[0]))
+    set_numbers = []
+    for i in range(len(text_lines)):
+        for j in range(len(text_lines[i])):
+            if text_lines[i][j]:
+                set_numbers += [(i,j,int(text_lines[i][j]))]
+    grid = Kurodoko(grid_size, set_numbers=set_numbers)
+    return grid

@@ -516,7 +516,7 @@ def test_conclude_grid_is_unsolvable():
     bad_grid = Kurodoko((3,3), set_numbers=[(0,0,3), (1,1,3), (2,2,3)])
     """
     Initial     Solution 1:  Solution 1:
-    grid:       
+    grid:
     3 ? ?       3 . .        3 . .
     ? 3 ?       X 3 X        X 3 X
     ? ? 3       . . 3        . . 3
@@ -529,6 +529,12 @@ def test_conclude_grid_is_unsolvable():
     grid.numbers[4,4] = 7
     outcome = grid.solve_grid_with_deductions_and_single_conjectures(branched=True)
     assert outcome == 1
-    breakpoint()
+
+def test_load_grid_from_textfile():
+    grid = make_kurodoko_from_file("example_grid.csv")
+    assert grid.shades[(0,0)] == 1
+    assert grid.numbers[(6,6)] == 8
+    outcome = grid.solve_grid_with_deductions_and_single_conjectures(branched=True)
+    assert outcome == 1
 
 # from solve_kurodoko import *
