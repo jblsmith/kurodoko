@@ -1,5 +1,6 @@
 from copy import deepcopy
 import numpy as np
+import csv
 
 def unfold_list_of_lists(list_of_lists):
     return [item for sublist in list_of_lists for item in sublist]
@@ -553,3 +554,10 @@ def make_kurodoko_from_file(filepath):
                 set_numbers += [(i,j,int(text_lines[i][j]))]
     grid = Kurodoko(grid_size, set_numbers=set_numbers)
     return grid
+
+def make_csv_from_kurodoko(grid, filepath):
+    with open(filepath, mode='w') as gridfile:
+        grid_writer = csv.writer(gridfile)
+        for i in range(grid.height):
+            row_data = list(grid.numbers[i,:]) + list(grid.shades[i,:])
+            grid_writer.writerow(row_data)
