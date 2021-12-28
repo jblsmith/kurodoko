@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Kurodoko</title>
+    <style>
+        div.grid {
+            margin: 3px;
+            border: 1px solid blue;
+            float: left;
+            user-select: none;
+        }
+        div.row {
+            float: left;
+            clear: both;
+        }
+        div.cell {
+            float: left;
+            width: 3em;
+            height: 3em;
+            line-height: 3em;
+            font-size: 2em;
+            text-align: center;
+            border: 2px solid blue;
+            background-color: #eee;
+            display: table-cell;
+            vertical-align: middle;
+        }
+        div.style1 {
+            float: left;
+            width: 3em;
+            height: 3em;
+            line-height: 3em;
+            font-size: 2em;
+            text-align: center;
+            border: 2px solid black;
+            background-color: white;
+            display: table-cell;
+            text-color: green;
+            vertical-align: bottom;            
+        }
+        div.style2 {
+            float: left;
+            width: 3em;
+            height: 3em;
+            line-height: 3em;
+            font-size: 2em;
+            text-align: center;
+            border: 2px solid black;
+            background-color: black;
+            display: table-cell;
+            text-color: green;
+            vertical-align: bottom;            
+        }
+    </style>
+    <script>
+    function myFunction(ele_id)
+    {
+        console.log(ele_id);
+        current_class = document.getElementById(ele_id).getAttribute("class");
+        console.log(current_class);
+        if (current_class == 'cell') {
+            document.getElementById(ele_id).classList.toggle("cell");
+            document.getElementById(ele_id).classList.toggle("style1");
+        } else if (current_class == 'style1') {
+            document.getElementById(ele_id).classList.toggle("style1");
+            document.getElementById(ele_id).classList.toggle("style2");
+        } else if (current_class == 'style2') {
+            document.getElementById(ele_id).classList.toggle("style2");
+            document.getElementById(ele_id).classList.toggle("cell");
+        }
+    }
+    </script>
+</head>
+<body>
+    <h1><div  id="floop">Kurodoko</div></h1>
+    <p>Here is a Kurodoko grid to solve.</p>
+    <div class="grid">
+        {% for row_i in range(grid.grid_size[1]) %}
+        <div class="row">
+            {% for col_j in range(grid.grid_size[0]) %}
+            {% set cell_ind = col_j * grid.grid_size[1] + row_i %}
+            <div
+             class="cell" id={{cell_ind}}
+              onclick="myFunction({{cell_ind}})" style="cursor: pointer;">
+              <!-- style="background-color: {{ 'white' if grid.shades[row_i,col_j]==1 else '#ddd'}}" -->
+                {% set num = grid.numbers[row_i,col_j] %}
+                {{ num if num > 0 }}
+            </div>
+
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>

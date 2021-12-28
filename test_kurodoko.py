@@ -541,5 +541,3 @@ def test_save_grid_to_textfile():
     grid = make_kurodoko_from_file("example_grid.csv")
     outcome = grid.solve_grid_with_deductions_and_single_conjectures(branched=True)
     make_csv_from_kurodoko(grid, "example_grid_solved.csv")
-
-# from solve_kurodoko import *

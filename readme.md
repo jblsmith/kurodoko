@@ -19,6 +19,8 @@ And the global rule is:
 
 TODO
 
+To run the website and solve a puzzle, run `bash run.sh`.
+
 ## How it works
 
 TODO
