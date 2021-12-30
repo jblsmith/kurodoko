@@ -6,7 +6,7 @@
     <style>
         div.grid {
             margin: 3px;
-            border: 1px solid blue;
+            border: 4px solid black;
             float: left;
             user-select: none;
         }
@@ -14,19 +14,19 @@
             float: left;
             clear: both;
         }
-        div.cell {
+        div.blank_cell {
             float: left;
             width: 3em;
             height: 3em;
             line-height: 3em;
             font-size: 2em;
             text-align: center;
-            border: 2px solid blue;
+            border: 2px solid black;
             background-color: #eee;
             display: table-cell;
             vertical-align: middle;
         }
-        div.style1 {
+        div.white_cell {
             float: left;
             width: 3em;
             height: 3em;
@@ -39,7 +39,7 @@
             text-color: green;
             vertical-align: bottom;            
         }
-        div.style2 {
+        div.black_cell {
             float: left;
             width: 3em;
             height: 3em;
@@ -52,23 +52,37 @@
             text-color: green;
             vertical-align: bottom;            
         }
+        div.main_button_area {
+             clear: left;
+        }
+        div.main_button {
+            float: left;
+            padding: 1em 3em 1em 0em;
+            margin: 1em;
+        }
     </style>
     <script>
     function myFunction(ele_id)
     {
-        console.log(ele_id);
         current_class = document.getElementById(ele_id).getAttribute("class");
-        console.log(current_class);
-        if (current_class == 'cell') {
-            document.getElementById(ele_id).classList.toggle("cell");
-            document.getElementById(ele_id).classList.toggle("style1");
-        } else if (current_class == 'style1') {
-            document.getElementById(ele_id).classList.toggle("style1");
-            document.getElementById(ele_id).classList.toggle("style2");
-        } else if (current_class == 'style2') {
-            document.getElementById(ele_id).classList.toggle("style2");
-            document.getElementById(ele_id).classList.toggle("cell");
+        if (current_class == 'blank_cell') {
+            document.getElementById(ele_id).classList.toggle("blank_cell");
+            document.getElementById(ele_id).classList.toggle("white_cell");
+        } else if (current_class == 'white_cell') {
+            document.getElementById(ele_id).classList.toggle("white_cell");
+            document.getElementById(ele_id).classList.toggle("black_cell");
+        } else if (current_class == 'black_cell') {
+            document.getElementById(ele_id).classList.toggle("black_cell");
+            document.getElementById(ele_id).classList.toggle("blank_cell");
         }
+    }
+    function checkGrid()
+    {
+        console.log("check")
+    }
+    function undoMove()
+    {
+        console.log("undo")
     }
     </script>
 </head>
@@ -79,18 +93,29 @@
         {% for row_i in range(grid.grid_size[1]) %}
         <div class="row">
             {% for col_j in range(grid.grid_size[0]) %}
-            {% set cell_ind = col_j * grid.grid_size[1] + row_i %}
-            <div
-             class="cell" id={{cell_ind}}
-              onclick="myFunction({{cell_ind}})" style="cursor: pointer;">
-              <!-- style="background-color: {{ 'white' if grid.shades[row_i,col_j]==1 else '#ddd'}}" -->
+                {% set cell_ind = col_j * grid.grid_size[1] + row_i %}
                 {% set num = grid.numbers[row_i,col_j] %}
-                {{ num if num > 0 }}
-            </div>
-
+                {% if num > 0 %}
+                <div class="white_cell" id={{cell_ind}}>
+                    {{ num }}
+                </div>
+                {% else %}
+                <div
+                 class="blank_cell" id={{cell_ind}}
+                  onclick="myFunction({{cell_ind}})" style="cursor: pointer;">
+                </div>
+                {% endif %}
             {% endfor %}
         </div>
         {% endfor %}
+    </div>
+    <div class="main_button_area">
+        <div class="main_button">
+            <button onclick="checkGrid()">Check solution</button>
+        </div>
+        <div class="main_button">
+            <button onclick="undoMove()">Undo</button>
+        </div>
     </div>
 </body>
 </html>
