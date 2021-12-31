@@ -1,21 +1,17 @@
 import datetime
 from flask import Flask, render_template
+import numpy as np
 app = Flask(__name__)
 
 from solve_kurodoko import Kurodoko, make_kurodoko_from_file
 
 grid = make_kurodoko_from_file("example_grid.csv")
 outcome = grid.solve_grid_with_deductions_and_single_conjectures(branched=True)
+solution = " ".join(np.concatenate(grid.shades).astype(str))
 
 @app.route('/')
 def hello_world():
-    grid_5_5_incomplete = Kurodoko((5,5))
-    return render_template(
-        'index.html',
-        utc_dt=str(grid_5_5_incomplete.shades),
-        rows=[3,4,5],
-        grid=grid
-    )
+    return render_template('index.html', grid=grid, solution=solution)
 
 # [x] Display a grid
 # [x] Grid cells are clickable

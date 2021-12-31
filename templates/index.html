@@ -2,8 +2,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta id="solution" data="{{solution}}">
     <title>Kurodoko</title>
     <style>
+        :root {
+          --grid-font-size: 1.5em;
+          --grid-size: 2em;
+        }
+        
+        p {
+            font-size: var(--grid-font-size);
+        }
+        
         div.grid {
             margin: 3px;
             border: 4px solid black;
@@ -16,10 +26,10 @@
         }
         div.blank_cell {
             float: left;
-            width: 3em;
-            height: 3em;
-            line-height: 3em;
-            font-size: 2em;
+            width: var(--grid-size);
+            height: var(--grid-size);
+            line-height: var(--grid-size);
+            font-size: var(--grid-font-size);
             text-align: center;
             border: 2px solid black;
             background-color: #eee;
@@ -28,10 +38,10 @@
         }
         div.white_cell {
             float: left;
-            width: 3em;
-            height: 3em;
-            line-height: 3em;
-            font-size: 2em;
+            width: var(--grid-size);
+            height: var(--grid-size);
+            line-height: var(--grid-size);
+            font-size: var(--grid-font-size);
             text-align: center;
             border: 2px solid black;
             background-color: white;
@@ -41,10 +51,10 @@
         }
         div.black_cell {
             float: left;
-            width: 3em;
-            height: 3em;
-            line-height: 3em;
-            font-size: 2em;
+            width: var(--grid-size);
+            height: var(--grid-size);
+            line-height: var(--grid-size);
+            font-size: var(--grid-font-size);
             text-align: center;
             border: 2px solid black;
             background-color: black;
@@ -60,25 +70,59 @@
             padding: 1em 3em 1em 0em;
             margin: 1em;
         }
+        div#response_area p {
+            font-size: var(--grid-font-size);
+            display: float;
+            clear: left;
+        }
     </style>
     <script>
     function myFunction(ele_id)
     {
         current_class = document.getElementById(ele_id).getAttribute("class");
-        if (current_class == 'blank_cell') {
+        if (current_class.includes('blank_cell')) {
             document.getElementById(ele_id).classList.toggle("blank_cell");
             document.getElementById(ele_id).classList.toggle("white_cell");
-        } else if (current_class == 'white_cell') {
+        } else if (current_class.includes('white_cell')) {
             document.getElementById(ele_id).classList.toggle("white_cell");
             document.getElementById(ele_id).classList.toggle("black_cell");
-        } else if (current_class == 'black_cell') {
+        } else if (current_class.includes('black_cell')) {
             document.getElementById(ele_id).classList.toggle("black_cell");
             document.getElementById(ele_id).classList.toggle("blank_cell");
         }
     }
     function checkGrid()
     {
-        console.log("check")
+        var n_mistakes = 0
+        var n_correct = 0
+        console.log("Running grid checker...")
+        solution_string = document.getElementById('solution').getAttribute('data')
+        solution_list = solution_string.split(" ")
+        white_cells = document.getElementsByClassName('white_cell')
+        black_cells = document.getElementsByClassName('black_cell')
+        for (let item_i=0; item_i<white_cells.length|0; item_i++) {
+            // console.log(white_cells[item_i].id)
+            // console.log(solution_list[white_cells[item_i].id])
+            if (solution_list[white_cells[item_i].id] == '-1') {
+                n_mistakes++
+            } else {
+                n_correct++
+            }
+        }
+        for (let item_i=0; item_i<black_cells.length|0; item_i++) {
+            if (solution_list[black_cells[item_i].id] == '1') {
+                n_mistakes++
+            } else {
+                n_correct++
+            }
+        }
+        if (n_mistakes > 0) {
+            document.getElementById('response_area').innerHTML = '<p>Errors found</p>';
+        } else if (n_correct < 49) {
+            document.getElementById('response_area').innerHTML = '<p>Correct but incomplete</p>';
+        } else {
+            document.getElementById('response_area').innerHTML = '<p>Correct!</p>';
+        }
     }
     function undoMove()
     {
@@ -87,21 +131,23 @@
     </script>
 </head>
 <body>
-    <h1><div  id="floop">Kurodoko</div></h1>
+    <h1><div id="floop">Kurodoko</div></h1>
     <p>Here is a Kurodoko grid to solve.</p>
     <div class="grid">
         {% for row_i in range(grid.grid_size[1]) %}
         <div class="row">
             {% for col_j in range(grid.grid_size[0]) %}
-                {% set cell_ind = col_j * grid.grid_size[1] + row_i %}
+                {% set cell_ind = col_j + grid.grid_size[1] * row_i %}
                 {% set num = grid.numbers[row_i,col_j] %}
+                {% set intended_shade = grid.shades[row_i,col_j] %}
+                {% set intended_shade_name = 'intended_white' if intended_shade==1 else 'intended_black' %}
                 {% if num > 0 %}
                 <div class="white_cell" id={{cell_ind}}>
                     {{ num }}
                 </div>
                 {% else %}
                 <div
-                 class="blank_cell" id={{cell_ind}}
+                 class="blank_cell {{intended_shade_name}}" id={{cell_ind}}
                   onclick="myFunction({{cell_ind}})" style="cursor: pointer;">
                 </div>
                 {% endif %}
@@ -115,6 +161,8 @@
         </div>
         <div class="main_button">
             <button onclick="undoMove()">Undo</button>
+        </div>
+        <div id="response_area">
         </div>
     </div>
 </body>
