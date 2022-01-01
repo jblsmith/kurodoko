@@ -10,19 +10,20 @@
           --grid-size: 2em;
         }
         
-        p {
+        p, li, button {
             font-size: var(--grid-font-size);
         }
         
-        div.grid {
-            margin: 3px;
-            border: 4px solid black;
+        div#main_grid {
+            border: 3px solid black;
             float: left;
             user-select: none;
+            overflow: hidden;
         }
         div.row {
             float: left;
             clear: both;
+            overflow: hidden;
         }
         div.blank_cell {
             float: left;
@@ -32,9 +33,11 @@
             font-size: var(--grid-font-size);
             text-align: center;
             border: 2px solid black;
-            background-color: #eee;
+            background-color: #aaa;
             display: table-cell;
             vertical-align: middle;
+            overflow: hidden;
+            
         }
         div.white_cell {
             float: left;
@@ -48,6 +51,8 @@
             display: table-cell;
             text-color: green;
             vertical-align: bottom;            
+            overflow: hidden;
+            
         }
         div.black_cell {
             float: left;
@@ -60,7 +65,9 @@
             background-color: black;
             display: table-cell;
             text-color: green;
-            vertical-align: bottom;            
+            vertical-align: bottom;
+            overflow: hidden;
+            
         }
         div.main_button_area {
              clear: left;
@@ -118,11 +125,27 @@
         }
         if (n_mistakes > 0) {
             document.getElementById('response_area').innerHTML = '<p>Errors found</p>';
-        } else if (n_correct < 49) {
+            error()
+        } else if (n_correct < solution_list.length) {
             document.getElementById('response_area').innerHTML = '<p>Correct but incomplete</p>';
+            reset_border_color()
         } else {
             document.getElementById('response_area').innerHTML = '<p>Correct!</p>';
+            win();
         }
+    }
+    function win() {
+        grid_div = document.getElementById('main_grid')
+        grid_div.style.borderColor = "#8e8"
+    }
+    function error() {
+        grid_div = document.getElementById('main_grid')
+        grid_div.style.borderColor = "#e88"
+        setTimeout(function() { reset_border_color(); }, 1000);
+    }
+    function reset_border_color() {
+        grid_div = document.getElementById('main_grid')
+        grid_div.style.borderColor = "black"
     }
     function undoMove()
     {
@@ -132,8 +155,8 @@
 </head>
 <body>
     <h1><div id="floop">Kurodoko</div></h1>
-    <p>Here is a Kurodoko grid to solve.</p>
-    <div class="grid">
+    <p><a href="https://en.wikipedia.org/wiki/Kuromasu">View the rules</a></p>
+    <div id="main_grid">
         {% for row_i in range(grid.grid_size[1]) %}
         <div class="row">
             {% for col_j in range(grid.grid_size[0]) %}
