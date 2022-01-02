@@ -98,7 +98,7 @@
             document.getElementById(ele_id).classList.toggle("blank_cell");
         }
     }
-    function checkGrid()
+    function check_grid()
     {
         var n_mistakes = 0
         var n_correct = 0
@@ -147,9 +147,27 @@
         grid_div = document.getElementById('main_grid')
         grid_div.style.borderColor = "black"
     }
-    function undoMove()
+    function reset_cell_blank(html_object) {
+        current_class = html_object.getAttribute("class")
+        if (current_class.includes('white_cell')) {
+            html_object.classList.toggle('white_cell');
+        }
+        if (current_class.includes('black_cell')) {
+            html_object.classList.toggle('black_cell');
+        }
+        if (!current_class.includes('blank_cell')) {
+            html_object.classList.toggle('blank_cell');
+        }
+    }
+    function clear_grid()
     {
-        console.log("undo")
+        console.log("clear")
+        cells = document.getElementsByClassName('cell')
+        for (let item_i=0; item_i<cells.length|0; item_i++) {
+            if (cells[item_i].innerText.length < 1) {
+                reset_cell_blank(cells[item_i])
+            }
+        }
     }
     </script>
 </head>
@@ -162,15 +180,13 @@
             {% for col_j in range(grid.grid_size[0]) %}
                 {% set cell_ind = col_j + grid.grid_size[1] * row_i %}
                 {% set num = grid.numbers[row_i,col_j] %}
-                {% set intended_shade = grid.shades[row_i,col_j] %}
-                {% set intended_shade_name = 'intended_white' if intended_shade==1 else 'intended_black' %}
                 {% if num > 0 %}
-                <div class="white_cell" id={{cell_ind}}>
+                <div class="white_cell cell" id={{cell_ind}}>
                     {{ num }}
                 </div>
                 {% else %}
                 <div
-                 class="blank_cell {{intended_shade_name}}" id={{cell_ind}}
+                 class="blank_cell cell" id={{cell_ind}}
                   onclick="myFunction({{cell_ind}})" style="cursor: pointer;">
                 </div>
                 {% endif %}
@@ -180,10 +196,10 @@
     </div>
     <div class="main_button_area">
         <div class="main_button">
-            <button onclick="checkGrid()">Check solution</button>
+            <button onclick="check_grid()">Check solution</button>
         </div>
         <div class="main_button">
-            <button onclick="undoMove()">Undo</button>
+            <button onclick="clear_grid()">Clear grid</button>
         </div>
         <div id="response_area">
         </div>
