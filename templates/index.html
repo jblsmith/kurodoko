@@ -179,8 +179,8 @@
         <div class="row">
             {% for col_j in range(grid.grid_size[0]) %}
                 {% set cell_ind = col_j + grid.grid_size[1] * row_i %}
-                {% set num = grid.numbers[row_i,col_j] %}
-                {% if num > 0 %}
+                {% set num = grid.numbers[row_i][col_j] %}
+                {% if num %}
                 <div class="white_cell cell" id={{cell_ind}}>
                     {{ num }}
                 </div>
