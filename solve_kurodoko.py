@@ -467,6 +467,7 @@ class Kurodoko(object):
         state_changed = True
         self.solving_iterations = 0
         while state_changed and (self.solving_iterations < 1000):
+            print(self.shades)
             for coord in self.blank_cells():
                 if self.numbers[coord] > 0:
                     self.deduce_cell_maxes_visible_space(*coord)
@@ -560,4 +561,11 @@ def make_csv_from_kurodoko(grid, filepath):
         grid_writer = csv.writer(gridfile)
         for i in range(grid.height):
             row_data = list(grid.numbers[i,:]) + list(grid.shades[i,:])
+            grid_writer.writerow(row_data)
+
+def make_solution_csv_for_kurodoko(grid, filepath):
+    with open(filepath, mode='w') as gridfile:
+        grid_writer = csv.writer(gridfile)
+        for i in range(grid.height):
+            row_data = list(grid.shades[i,:])
             grid_writer.writerow(row_data)
